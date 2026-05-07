@@ -1,0 +1,76 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "THE BURROW",
+  "description": "A dark top-down Soulslike starring the CodeRabbit rabbit.",
+  "colors": {
+    "primary": "#c9a449",
+    "light": "#f0d76a",
+    "dark": "#0b0a10"
+  },
+  "appearance": {
+    "default": "dark"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Guide",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": ["introduction", "quickstart", "controls"]
+          },
+          {
+            "group": "Mechanics",
+            "pages": [
+              "mechanics/combat",
+              "mechanics/stamina",
+              "mechanics/dodge-roll",
+              "mechanics/lock-on",
+              "mechanics/grace",
+              "mechanics/runes-and-death"
+            ]
+          },
+          {
+            "group": "World",
+            "pages": [
+              "world/overview",
+              "world/forsaken-warren",
+              "world/forgotten-alcove",
+              "world/sunken-choir",
+              "world/antechamber",
+              "world/bugs-hollow"
+            ]
+          },
+          {
+            "group": "Bestiary",
+            "pages": [
+              "enemies/overview",
+              "enemies/corrupted-grub",
+              "enemies/cave-spider",
+              "enemies/the-devourer"
+            ]
+          },
+          {
+            "group": "Items",
+            "pages": ["items/overview"]
+          }
+        ]
+      }
+    ]
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "GitHub",
+        "href": "https://github.com/coderabbit-demo/the-burrow"
+      }
+    ]
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/coderabbit-demo/the-burrow"
+    }
+  }
+}

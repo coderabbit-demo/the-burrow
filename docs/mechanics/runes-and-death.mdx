@@ -1,0 +1,72 @@
+---
+title: "Runes & Death"
+description: "What you earn, what you drop, what you lose."
+---
+
+Every kill drops **runes** — golden shards that orbit upward and add
+to a counter in the top-right of the HUD. Runes are the game's
+score, and they're at risk every time you die.
+
+## Drop table
+
+| Source | Runes |
+|---|---|
+| Corrupted Grub | 8 |
+| Cave Spider | 14 |
+| Devourer phase transition | 100 (×2 transitions) |
+| Devourer kill | 600 |
+
+A clean run from spawn to the ending tooth is around **350 + 800 = 1150
+runes** if you take all the optional fights.
+
+## Death
+
+When your HP hits zero:
+
+<Steps>
+  <Step title='"YOU DIED"'>
+    The screen fades to black with deep-red letters. Take it as a
+    statement of fact, not an insult.
+  </Step>
+  <Step title="Runes drop where you fell">
+    Every unspent rune in your counter becomes a single
+    **bloodstain pickup** at the death spot. Your counter resets
+    to zero.
+  </Step>
+  <Step title="Respawn at last Grace">
+    You wake at the Grace lantern you most recently rested at — full
+    HP, full flasks, full stamina. All non-boss enemies are back.
+  </Step>
+  <Step title="Recover the bloodstain">
+    Walk back to where you died. The bloodstain is a glowing
+    rune-shard sprite. Touching it returns every rune you lost.
+  </Step>
+</Steps>
+
+<Warning>
+  **Die before recovering, and the bloodstain is gone forever.** A new
+  death spawns a new bloodstain at the new spot — there's only ever
+  one. Greed kills runs.
+</Warning>
+
+## What survives death
+
+These persist across deaths:
+
+- **Bone Key** (once picked up).
+- **Ember of the Hollow** (your light radius stays expanded).
+- **Antechamber switch state** (if you pressed it, the gate stays open).
+- **Grace progress** — your respawn point is the last Grace you lit.
+
+## What doesn't
+
+- Your unspent runes (recoverable once).
+- Your position on the map — you go back to the last Grace.
+- Boss phase progress — the Devourer fight resets to phase 1 at full HP.
+
+<Tip>
+  Light **both** Graces (Warren and Sunken Choir) before pushing the
+  switch in the Antechamber. Dying in Bug's Hollow with only the
+  first Grace lit means a long walk through enemies you've already
+  cleared.
+</Tip>

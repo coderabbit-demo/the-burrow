@@ -1,0 +1,53 @@
+---
+title: "Combat"
+description: "Hit them, don't get hit."
+---
+
+The rabbit fights with a tiny bone shortsword. Two attacks, one button each.
+
+| Attack | Key | Damage | Knockback | Stamina | Notes |
+|---|---|---|---|---|---|
+| **Light** | `J` | 12 | 90 | 18 | Quick to start, quick to recover. Good for chip + dodge cycles. |
+| **Heavy** | `K` | 26 | 180 | 30 | Slower, but knocks enemies back hard enough to interrupt their windups. |
+
+Both attacks lock you in place for **240 ms**. The hitbox is a 22×22
+rectangle in front of your facing — so face the enemy before you swing.
+
+## How to read a fight
+
+Each enemy has a clear **windup** (a frame swap or rear-up). That's your
+window. Pick one:
+
+<CardGroup cols={2}>
+  <Card title="Roll through it" icon="circle-arrow-right">
+    `Shift` toward the enemy during the windup. Your i-frames carry you
+    past their hit, and you come out behind them, free to swing.
+  </Card>
+  <Card title="Out-trade with heavy" icon="hammer">
+    `K` lands before most non-boss windups complete and the heavy
+    knockback usually cancels their attack outright.
+  </Card>
+</CardGroup>
+
+<Warning>
+  You cannot cancel an attack mid-swing. If you press `J` and they
+  start their windup at the same time, you're going to trade. Plan
+  your openings.
+</Warning>
+
+## Hits feel real
+
+Every successful strike does three things:
+
+- **Camera shake** — a 60 ms tremor on light, longer on heavy and on the
+  boss's slam.
+- **Hit-stun tint** — the enemy flashes red for ~80 ms. They're locked
+  out of attacks during this window.
+- **Knockback** — pushed away in the direction your swing came from.
+
+<Tip>
+  String light attacks together to keep an enemy in hit-stun and out
+  of their attack pattern. If they're flashing red, they're not biting
+  you. (The spider's leap is the exception — see
+  [Cave Spider](/enemies/cave-spider).)
+</Tip>

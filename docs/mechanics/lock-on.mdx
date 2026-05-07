@@ -1,0 +1,51 @@
+---
+title: "Lock-On"
+description: "Glue the camera to a target and strafe."
+---
+
+Press `L` to lock onto the nearest enemy in range. A red diamond
+appears above their head. Press `Tab` while locked to cycle to the
+next-nearest target. Press `L` again to break the lock.
+
+## What lock-on changes
+
+- The lock indicator (a small red ring + chevron) is drawn on your
+  target so you can keep tabs on them through the gloom.
+- Your movement input becomes **strafe-relative** — `A`/`D` orbit the
+  target instead of moving in absolute screen directions.
+- The camera biases halfway between you and the target so you can see
+  what they're about to do.
+
+## Range
+
+Lock-on only catches enemies within roughly **160 px** (10 tiles).
+Anything further away is too dark to track anyway.
+
+<Tip>
+  Lock-on **drops automatically** when your target dies. Tap `L` again
+  to grab the next-nearest enemy without skipping a beat.
+</Tip>
+
+## When to use it
+
+<CardGroup cols={2}>
+  <Card title="Boss fight" icon="bug">
+    Always. The Devourer is too fast and too big to read without the
+    camera bias. Strafe with `A`/`D`, dodge through tells, hit on
+    recovery.
+  </Card>
+  <Card title="Single mob" icon="user">
+    Yes, mostly. Helps with spider leaps and grub lunges where timing
+    matters more than positioning.
+  </Card>
+  <Card title="Crowds" icon="users">
+    Skip it. With three or more enemies, free-camera lets you respond
+    to whoever's about to hit you instead of one fixed target.
+  </Card>
+</CardGroup>
+
+<Note>
+  Locking on **does not** auto-aim your attacks. You still need to face
+  the target — the indicator helps you keep track of where "facing"
+  should be.
+</Note>

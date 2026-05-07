@@ -1,0 +1,62 @@
+---
+title: "Corrupted Grub"
+description: "Fat segmented worm with a glowing red back. The burrow's grunt enemy."
+---
+
+A pale-bellied carrion grub with a bright red carapace and dim
+glowing eyes. Slow, predictable, and easy to clear once you've
+seen the lunge once. The first creature you'll meet in the
+Forsaken Warren, and the only adds the boss spawns in phase 2.
+
+## Stats
+
+| Property | Value |
+|---|---|
+| HP | 30 |
+| Speed | 32 |
+| Contact damage | 8 |
+| Aggro range | 110 px |
+| Attack range | 14 px |
+| Runes dropped | 8 |
+
+## Behavior
+
+The grub idles in place until you cross its **aggro range**
+(roughly 7 tiles). It then crawls toward you at a slow,
+unhurried pace. Once within ~14 px it commits to a **lunge bite**:
+a short hop forward with its mouth open. The bite costs you 8 HP
+on contact and locks the grub in place for a beat afterward.
+
+| Phase | Tell | Window |
+|---|---|---|
+| Approach | Crawl animation, no flash | — |
+| Lunge | Mouth opens, body squashes back | ~220 ms |
+| Recovery | Stays in bite pose, can't move | ~880 ms |
+
+## How to kill it
+
+<CardGroup cols={2}>
+  <Card title="The lazy answer" icon="swords">
+    Walk up, swing `J` three times. Each light hit (12 dmg) chunks
+    nearly half its HP. Three hits = dead. The grub's lunge
+    happens once per ~1.1 s — fast attacks beat it to the punch.
+  </Card>
+  <Card title="The clean answer" icon="circle-arrow-right">
+    Bait the lunge by walking just inside aggro range, dodge-roll
+    backward through the bite, then commit two heavy attacks (`K`)
+    to its recovery. Dead in two hits.
+  </Card>
+</CardGroup>
+
+<Warning>
+  Don't walk **away** from a grub when it lunges — its hop covers
+  more ground than your normal walk speed. Either roll or
+  out-trade. Backstepping at walk speed eats the bite.
+</Warning>
+
+## Where you'll find them
+
+- 4 in the [Forsaken Warren](/world/forsaken-warren)
+- 6 in the [Sunken Choir](/world/sunken-choir)
+- 2 in the [Antechamber](/world/antechamber)
+- Up to 3 spawned by the Devourer in phase 2 (lower HP, 18 each)

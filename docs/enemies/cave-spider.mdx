@@ -1,0 +1,71 @@
+---
+title: "Cave Spider"
+description: "Fast, leaps from range, bursts your stamina if it lands."
+---
+
+Eight legs, dark-red carapace, a bright cluster of eyes you can see
+glow even in the dim. The spider is the burrow's punisher — it
+leaps from outside your sword's reach and expects you to flinch.
+
+## Stats
+
+| Property | Value |
+|---|---|
+| HP | 22 |
+| Speed | 56 |
+| Contact damage | 12 |
+| Aggro range | 150 px |
+| Attack range | 22 px |
+| Runes dropped | 14 |
+
+## Behavior
+
+The spider patrols its spawn point until you enter aggro range
+(~9 tiles). It then scuttles toward you fast — almost matching
+your walk speed — until it's about 32 px away. It then commits
+to a **leap**: a 280 ms airborne dash that ignores its normal
+movement rules and tracks toward where you were when it
+launched.
+
+| Phase | Tell | Window |
+|---|---|---|
+| Scuttle | Faster animation, eyes brighten | — |
+| Leap windup | Body crouches, frame swap | ~80 ms |
+| Leap travel | Airborne | 280 ms |
+| Recovery | Lands, frozen briefly | ~1100 ms |
+
+## How to kill it
+
+<CardGroup cols={2}>
+  <Card title="The roll-in answer" icon="circle-arrow-right">
+    Wait at edge of leap range. The instant the spider crouches,
+    `Shift` **toward** the spider. Your i-frames overlap the
+    leap; you come out behind it during its recovery. Two heavies
+    finish.
+  </Card>
+  <Card title="The sidestep answer" icon="rotate">
+    Lock on (`L`), strafe with `A`/`D` continuously. The leap
+    tracks where you **were**, not where you'll be. Walking
+    sideways at full speed makes the spider miss without using a
+    dodge.
+  </Card>
+</CardGroup>
+
+<Warning>
+  Do not block. There is no block. If the leap is going to hit, you
+  must roll **before** the leap travels — once it's airborne, only
+  i-frames stop it.
+</Warning>
+
+<Tip>
+  Spiders pull other spiders. If two are grouped, kill one
+  outside the other's aggro range first — fighting both at once
+  burns through stamina before either commits a leap.
+</Tip>
+
+## Where you'll find them
+
+- 2 in the [Forsaken Warren](/world/forsaken-warren)
+- 2 in the [Forgotten Alcove](/world/forgotten-alcove)
+- 4 in the [Sunken Choir](/world/sunken-choir)
+- 2 in the [Antechamber](/world/antechamber)

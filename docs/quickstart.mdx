@@ -1,0 +1,61 @@
+---
+title: "Quickstart"
+description: "Run THE BURROW locally in under a minute."
+---
+
+The game is a static site — no build step, no install. Any HTTP server
+that can serve files will do.
+
+<Steps>
+  <Step title="Clone the repo">
+    ```sh
+    git clone git@github.com:coderabbit-demo/the-burrow.git
+    cd the-burrow
+    ```
+  </Step>
+
+  <Step title="Start a static server">
+    Pick whichever you have on hand:
+
+    <Tabs>
+      <Tab title="Python">
+        ```sh
+        python3 -m http.server 8000
+        ```
+      </Tab>
+      <Tab title="Node">
+        ```sh
+        npx serve .
+        ```
+      </Tab>
+    </Tabs>
+  </Step>
+
+  <Step title="Open the URL">
+    Visit [http://localhost:8000](http://localhost:8000) in Chrome,
+    Safari, or any modern browser. The title screen reads
+    **THE BURROW** in rune-gold.
+  </Step>
+
+  <Step title="Press Enter to descend">
+    You'll wake at the central Grace lantern of the **Forsaken Warren**.
+    Move with `WASD`, swing with `J`, dodge with `Shift`. See
+    [Controls](/controls) for the rest.
+  </Step>
+
+  <Step title="Find the path">
+    The full route is **Forsaken Warren → Forgotten Alcove (key) → back
+    to Warren → Sunken Choir → Antechamber (switch) → Bug's Hollow**.
+    The [World overview](/world/overview) has a minimap.
+  </Step>
+</Steps>
+
+<Tip>
+  The canvas uses pixel-perfect scaling. If sprites look blurry, your
+  browser's zoom is interpolating — reset to 100% (`Cmd/Ctrl+0`).
+</Tip>
+
+<Note>
+  Phaser 3 loads from a CDN, so the first launch needs an internet
+  connection. After that the browser cache handles it.
+</Note>

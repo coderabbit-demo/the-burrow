@@ -1,0 +1,49 @@
+---
+title: "Stamina"
+description: "The yellow bar is your real health."
+---
+
+Every meaningful action — attacks, dodges — costs stamina. Run out and
+you can't roll, which is how most players die.
+
+## The numbers
+
+| Property | Value |
+|---|---|
+| Maximum | 100 |
+| Regen rate | 60 / second |
+| Regen delay after spending | 500 ms |
+
+| Action | Cost |
+|---|---|
+| Light attack (`J`) | 18 |
+| Heavy attack (`K`) | 30 |
+| Dodge-roll (`Shift`) | 25 |
+
+The regen **delay** is the catch — every time you act, regen pauses for
+half a second before resuming. Mash four lights in a row and you're
+empty for over a second.
+
+## Reading the bar
+
+The yellow bar lives just under your HP bar in the top-left. Don't
+look at it during a fight — look at it **between** fights. If it isn't
+full when an enemy starts their windup, fall back instead of engaging.
+
+<Tip>
+  A full stamina bar buys you exactly **one** dodge **and** one heavy
+  attack — your standard "panic combo". Anything less and you're
+  betting on the next regen tick.
+</Tip>
+
+<Warning>
+  Stamina does **not** drain from movement. Sprinting away from a fight
+  is always free. Use that.
+</Warning>
+
+## When it pays to wait
+
+The Devourer's dive-slam takes ~700 ms to telegraph. That's enough time
+for a full stamina top-up if you're at half. **Don't dodge early** —
+stand still, watch the rear-up, then commit a single late roll. You'll
+come out of the dodge with stamina to punish.

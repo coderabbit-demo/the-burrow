@@ -111,6 +111,11 @@ export class AreaScene extends Phaser.Scene {
     this.gates = [];
     this.switches = [];
     this.boss = null;
+    // Reset per-map state — these scene-instance flags persist across scene.restart.
+    this._roomEverHadMobs = false;
+    this._roomCleared = false;
+    this._transitioning = false;
+    this._lockedHintAt = 0;
 
     for (const e of map.entities) {
       const wx = e.x * TILE + TILE / 2;

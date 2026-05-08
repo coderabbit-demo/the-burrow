@@ -1,0 +1,80 @@
+---
+title: "Light & Vision"
+description: "Why the burrow is dark, and what you can see."
+---
+
+The burrow is permanently dim. Most of the world sits behind a heavy
+overlay of darkness; only soft circular halos of light reveal what's
+actually around you. Reading those halos is part of the game.
+
+## What lights what
+
+| Source | Radius | Where it lives |
+|---|---|---|
+| The rabbit (you) | **150 px** | Always centered on the player |
+| The rabbit with the Ember | **210 px** | Once you pick up the [Ember of the Hollow](/items/overview#ember-of-the-hollow) |
+| Grace lantern | 60 px | At every Grace (one in the Warren, one in the Choir) |
+| Fungus pod | 40 px | Sickly green pods scattered through the world |
+
+Each halo is a smooth round fade — bright at the center, falling off
+gently to the surrounding dark. Halos overlap and stack: standing on a
+Grace gives you both your own halo *and* the lantern's, so the whole
+local area lights up.
+
+## What you can see outside the halos
+
+Even outside any light source, the world isn't pitch-black — there's a
+faint **ambient glow** (about 8% of full visibility) that lets distant
+silhouettes still read. It's deliberately just enough to spot a
+spider's red eye-cluster across a room before you walk into it, but
+not enough to read the floor or hit anything.
+
+<Tip>
+  If you see two glowing red dots far ahead in the dark, that's a
+  spider. Lock on (`L`) before you commit — you'll see the leap
+  windup the moment it enters your halo.
+</Tip>
+
+## The Ember of the Hollow
+
+The single most impactful pickup in the run. It permanently widens
+your light radius from **150** to **210** pixels — about a third more
+of every room visible at any given time, including a meaningful chunk
+of the boss arena.
+
+The Ember is **optional** — you can finish the game without it — but
+it makes the boss substantially easier because you can read the
+Devourer's wind-up tells from further away.
+
+It sits in the bottom-left corner of the [Sunken Choir](/world/sunken-choir),
+behind the dried-blood corridor.
+
+<Note>
+  The Ember effect is permanent. It survives death and zone
+  transitions; you only need to pick it up once.
+</Note>
+
+## What about the boss arena?
+
+[Bug's Hollow](/world/bugs-hollow) has **no Grace lantern and no
+fungus pods** — just your own halo. The arena is roughly 16 tiles
+across, so even with the Ember active you can't see the entire room
+at once. Phase 3's radial ichor burst is harder to read because of
+this — projectiles enter your halo only seconds before they hit you.
+
+<Warning>
+  Lock-on (`L`) is even more useful in the boss arena than usual —
+  the camera bias slides toward the boss, effectively letting you
+  "see further" in their direction at the expense of what's behind
+  you.
+</Warning>
+
+## Why does it look this way?
+
+The dark overlay is a single full-screen layer with circular holes
+"erased" out of it wherever a light source exists — every halo is
+a smooth, mathematically round disc. If you're seeing anything that
+looks square or jagged at the edge of a light source, that's a bug,
+not a feature. (We chased one such issue down already; the lighting
+overlay now uses smooth bilinear sampling so the halos render
+perfectly round at every zoom.)

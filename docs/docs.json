@@ -28,6 +28,7 @@
               "mechanics/stamina",
               "mechanics/dodge-roll",
               "mechanics/lock-on",
+              "mechanics/light",
               "mechanics/grace",
               "mechanics/runes-and-death"
             ]

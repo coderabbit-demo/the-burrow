@@ -1,8 +1,14 @@
 import { CONFIG } from '../config.js';
 
-// A radial dark overlay rendered to a separate render texture. Bright spots
-// (player light, lantern lights) "cut" holes in the dark by drawing additive
-// gradient circles. We then draw the overlay on top of the world at high depth.
+// Darkness overlay rendered to a screen-aligned RenderTexture. We start with
+// an opaque dark fill, then ERASE soft circular holes wherever a light is.
+// The overlay is then drawn on top of the world with normal alpha blending —
+// holes reveal the world clearly, the rest stays dim.
+//
+// Key insight: drawing a square canvas with MULTIPLY blend forces the canvas
+// corners to render as black (since MULTIPLY treats transparent as black),
+// which produces the squared light look. Using ERASE on a circular alpha
+// mask avoids that — only the disc carves into the darkness.
 
 export class LightingLayer {
   constructor(scene) {
@@ -11,28 +17,42 @@ export class LightingLayer {
     this.rt.setOrigin(0, 0);
     this.rt.setScrollFactor(0);
     this.rt.setDepth(900);
-    this.rt.setBlendMode(Phaser.BlendModes.MULTIPLY);
+    // Normal alpha blend — the overlay's own transparency does the dimming.
+    this.rt.setBlendMode(Phaser.BlendModes.NORMAL);
 
-    // Pre-render gradient circles into in-memory canvases for performance.
+    // Smooth-sample the darkness overlay so the circular alpha mask keeps
+    // its round falloff. Without this, the global `pixelArt: true` flag
+    // forces NEAREST sampling on the gradient and the rim stair-steps into
+    // visible L-shaped artifacts that read as square corners.
+    if (this.rt.texture && typeof this.rt.texture.setFilter === 'function') {
+      this.rt.texture.setFilter(Phaser.Textures.FilterMode.LINEAR);
+    }
+
+    // Pre-built radial alpha masks, keyed by radius+intensity.
     this._lightCanvases = new Map();
   }
 
   _getLightCanvas(radius, intensity = 1.0) {
     const key = `${radius}_${intensity.toFixed(2)}`;
     if (this._lightCanvases.has(key)) return this._lightCanvases.get(key);
+
     const size = radius * 2;
     const c = document.createElement('canvas');
     c.width = size;
     c.height = size;
     const ctx = c.getContext('2d');
+
+    // The mask is white with a radial alpha falloff. Erase consumes the
+    // destination proportionally to the source's alpha — opaque white at
+    // center erases fully, fully-transparent at the rim erases nothing.
+    const a = intensity;
     const g = ctx.createRadialGradient(radius, radius, 0, radius, radius, radius);
-    // Bright center → grey mid → matches ambient at the rim. We never go
-    // pure black so that the world remains faintly visible at the edge.
-    const brightness = Math.min(255, Math.round(255 * intensity));
-    g.addColorStop(0, `rgba(${brightness},${brightness},${brightness},1)`);
-    g.addColorStop(0.45, `rgba(170,160,170,1)`);
-    g.addColorStop(0.8, `rgba(90,80,95,1)`);
-    g.addColorStop(1, 'rgba(60,55,70,1)');
+    g.addColorStop(0.00, `rgba(255,255,255,${a})`);
+    g.addColorStop(0.35, `rgba(255,255,255,${a * 0.85})`);
+    g.addColorStop(0.65, `rgba(255,255,255,${a * 0.45})`);
+    g.addColorStop(0.88, `rgba(255,255,255,${a * 0.10})`);
+    g.addColorStop(1.00, `rgba(255,255,255,0)`);
+
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, size, size);
     this._lightCanvases.set(key, c);
@@ -42,9 +62,10 @@ export class LightingLayer {
   // lights: array of { x, y, radius, intensity } in WORLD coords.
   render(camera, lights) {
     this.rt.clear();
-    // Base ambient: dim but never fully black so distant mobs remain
-    // recognizable silhouettes.
-    this.rt.fill(0x282030, 1);
+    // Opaque dark layer. Alpha < 1 lets a sliver of the world show through
+    // even outside any light, so distant silhouettes remain readable.
+    this.rt.fill(0x05050a, 0.92);
+
     for (const l of lights) {
       const sx = l.x - camera.scrollX - l.radius;
       const sy = l.y - camera.scrollY - l.radius;
@@ -53,7 +74,9 @@ export class LightingLayer {
       if (!this.scene.textures.exists(texKey)) {
         this.scene.textures.addCanvas(texKey, lc);
       }
-      this.rt.draw(texKey, sx, sy);
+      // Erase carves the alpha mask out of the dark overlay using
+      // destination-out blending — soft circular holes, no square edges.
+      this.rt.erase(texKey, sx, sy);
     }
   }
 }

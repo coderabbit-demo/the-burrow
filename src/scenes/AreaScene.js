@@ -9,6 +9,7 @@ import { Prop, GraceLantern, ItemPickup, Switch } from '../entities/Prop.js';
 import { LightingLayer } from '../systems/lighting.js';
 import { LockOn } from '../systems/lockon.js';
 import { GraceState } from '../systems/grace.js';
+import { Audio } from '../systems/audio.js';
 
 const TILE = CONFIG.TILE;
 
@@ -71,6 +72,9 @@ export class AreaScene extends Phaser.Scene {
     } else {
       this.game.events.emit('bossActive', null);
     }
+
+    // Music
+    Audio.startMusic(this.isBoss ? 'boss' : 'area');
   }
 
   _buildTiles(map) {
@@ -235,7 +239,7 @@ export class AreaScene extends Phaser.Scene {
       upArrow: 'UP', downArrow: 'DOWN', leftArrow: 'LEFT', rightArrow: 'RIGHT',
       light: 'J', heavy: 'K', roll: 'SHIFT',
       lock: 'L', cycle: 'TAB',
-      flask: 'F', interact: 'E',
+      flask: 'F', interact: 'E', mute: 'M',
     });
     this.keys.light.on('down', () => this.player.tryAttack(false));
     this.keys.heavy.on('down', () => this.player.tryAttack(true));
@@ -252,8 +256,19 @@ export class AreaScene extends Phaser.Scene {
       if (this.player.drinkFlask()) this.game.events.emit('hudUpdate', this._hudPayload());
     });
     this.keys.interact.on('down', () => this._tryInteract());
+    this.keys.mute.on('down', () => this._toggleMute());
 
     this.events.on('playerDied', () => this._onPlayerDied());
+  }
+
+  _toggleMute() {
+    const m = Audio.toggleMute();
+    const t = this.add.text(CONFIG.GAME_W / 2, 24, m ? 'audio off' : 'audio on', {
+      fontFamily: 'Courier New, monospace',
+      fontSize: '10px',
+      color: '#a89bb0',
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(2000);
+    this.tweens.add({ targets: t, alpha: 0, duration: 1000, onComplete: () => t.destroy() });
   }
 
   _wireBossEvents() {
@@ -265,11 +280,12 @@ export class AreaScene extends Phaser.Scene {
       this.physics.add.collider(g, this.solidTiles);
     });
     this.events.on('bossProjectile', (x, y, dx, dy) => this._spawnProjectile(x, y, dx, dy));
-    this.events.on('bossPhase', (p) => this._flashMapName(`PHASE ${p}`));
+    this.events.on('bossPhase', (p) => { Audio.play('boss_roar'); this._flashMapName(`PHASE ${p}`); });
     this.events.on('bossDefeated', () => this._bossDefeated());
   }
 
   _bossSlam(x, y, dmg) {
+    Audio.play('boss_slam');
     const ring = this.add.image(x, y, 'slam_ring').setDepth(15).setAlpha(0.95).setScale(0.4);
     this.tweens.add({
       targets: ring,
@@ -286,6 +302,7 @@ export class AreaScene extends Phaser.Scene {
   }
 
   _spawnProjectile(x, y, dx, dy) {
+    Audio.play('boss_projectile');
     const proj = this.physics.add.image(x, y, 'proj_ichor');
     proj.setDepth(11);
     proj.body.setCircle(3);
@@ -379,6 +396,7 @@ export class AreaScene extends Phaser.Scene {
       if (d < 22) {
         GraceState.setActive(this.mapKey, lan.id, lan.x, lan.y);
         this.player.enterRest();
+        Audio.play('grace_rest');
         this._respawnEnemies();
         const pTxt = this.add.text(lan.x, lan.y - 28, 'GRACE LIT', {
           fontFamily: 'Courier New, monospace',
@@ -634,6 +652,7 @@ export class AreaScene extends Phaser.Scene {
   }
 
   _collectPickup(p, idx) {
+    Audio.play('pickup');
     if (p.kind === 'flask') this.player.pickupFlask();
     else if (p.kind === 'key') this.player.pickupKey();
     else if (p.kind === 'ember') this.player.pickupEmber();
@@ -664,6 +683,7 @@ export class AreaScene extends Phaser.Scene {
   _gateLockedHint(g) {
     if (this._lockedHintAt && this.time.now - this._lockedHintAt < 1500) return;
     this._lockedHintAt = this.time.now;
+    Audio.play('door_locked');
     const hint = ({
       bone_key: 'a key turns somewhere in the dark...',
       boss_switch: 'a rune-circle waits to be lit.',
@@ -702,6 +722,7 @@ export class AreaScene extends Phaser.Scene {
         this._pulseDoor(g.sprite);
       }
     }
+    Audio.play('room_cleared');
     this.cameras.main.flash(220, 80, 60, 30);
     const t = this.add.text(CONFIG.GAME_W / 2, CONFIG.GAME_H / 2 - 40, 'the way opens — find the door', {
       fontFamily: 'Courier New, monospace',
@@ -718,6 +739,7 @@ export class AreaScene extends Phaser.Scene {
   }
 
   _switchPressedFx(s) {
+    Audio.play('switch_press');
     this.cameras.main.flash(280, 220, 180, 80);
     this.cameras.main.shake(160, 0.004);
     const t = this.add.text(s.x, s.y - 22, 'the way south opens', {
@@ -729,6 +751,7 @@ export class AreaScene extends Phaser.Scene {
   }
 
   _gateOpenFx(g) {
+    Audio.play('door_open');
     this.cameras.main.flash(220, 80, 30, 30);
     if (g.sprite && g.sprite.texture.key !== 'prop_door_open') {
       g.sprite.setTexture('prop_door_open');

@@ -1,4 +1,5 @@
 import { CONFIG } from '../config.js';
+import { Audio } from '../systems/audio.js';
 
 export class TitleScene extends Phaser.Scene {
   constructor() { super('TitleScene'); }
@@ -61,6 +62,8 @@ export class TitleScene extends Phaser.Scene {
   }
 
   _begin() {
+    Audio.init();
+    Audio.play('menu_select');
     this.scene.start('AreaScene', { mapKey: 'area1' });
     this.scene.launch('HudScene');
   }

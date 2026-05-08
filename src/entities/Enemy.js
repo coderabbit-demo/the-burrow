@@ -1,4 +1,5 @@
 import { Animator } from '../sprites/animator.js';
+import { Audio } from '../systems/audio.js';
 
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, textureKey) {
@@ -31,6 +32,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.invulnUntil = now + 120;
     this.setTint(0xc1474d);
     this.scene.time.delayedCall(80, () => { if (!this.dying) this.clearTint(); });
+    Audio.play('hit_enemy');
     if (typeof fromX === 'number') {
       const dx = this.x - fromX;
       const dy = this.y - fromY;
@@ -44,6 +46,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.dying = true;
     this.setVelocity(0, 0);
     this.body.enable = false;
+    Audio.play('enemy_death');
     this.scene.events.emit('enemyDied', this);
   }
 

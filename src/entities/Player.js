@@ -1,5 +1,6 @@
 import { CONFIG } from '../config.js';
 import { Animator } from '../sprites/animator.js';
+import { Audio } from '../systems/audio.js';
 
 const STATES = {
   IDLE: 'idle',
@@ -67,6 +68,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.staminaRegenAt = now + CONFIG.PLAYER.STAMINA_REGEN_DELAY;
     this.attackUntil = now + CONFIG.PLAYER.ATTACK_DURATION;
     this.attackHeavy = heavy;
+    Audio.play(heavy ? 'swing_heavy' : 'swing_light');
     this.attackHitTargets.clear();
     this.state = STATES.ATTACK;
     this.setVelocity(0, 0);
@@ -98,6 +100,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.state = STATES.ROLL;
     this.setVelocity(vx * CONFIG.PLAYER.ROLL_SPEED, vy * CONFIG.PLAYER.ROLL_SPEED);
     this.animator.play('roll', ['rabbit_roll_1', 'rabbit_roll_2'], 14, true);
+    Audio.play('roll');
     return true;
   }
 
@@ -106,6 +109,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.flasks--;
     this.hp = Math.min(this.hpMax, this.hp + CONFIG.PLAYER.FLASK_HEAL);
     this.scene.cameras.main.flash(120, 200, 100, 60);
+    Audio.play('flask');
     return true;
   }
 
@@ -117,6 +121,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.invulnUntil = now + CONFIG.PLAYER.INVULN_HIT;
     this.scene.cameras.main.shake(120, 0.005);
     this.scene.cameras.main.flash(80, 80, 0, 0);
+    Audio.play('hit_player');
     if (this.hp <= 0) {
       this.hp = 0;
       this.die();
@@ -139,6 +144,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.state = STATES.DEAD;
     this.setVelocity(0, 0);
     this.animator.play('death', ['rabbit_death_1', 'rabbit_death_2'], 3, false);
+    Audio.play('player_death');
     this.scene.events.emit('playerDied', this);
   }
 

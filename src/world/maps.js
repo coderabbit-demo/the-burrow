@@ -170,7 +170,7 @@ export const MAPS = {
       { type: 'prop:web_decal',   x: 11, y: 2, decoration: true },
       { type: 'prop:bone_pile',   x: 7, y: 6 },
       { type: 'prop:blood_decal', x: 5, y: 5, decoration: true },
-      { type: 'transition', x: 7, y: 8, target: 'area1', toX: 15, toY: 1 },
+      { type: 'gate', x: 7, y: 8, requires: 'clear', target: 'area1', toX: 15, toY: 1 },
     ],
   },
 

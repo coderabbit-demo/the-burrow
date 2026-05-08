@@ -115,17 +115,20 @@ export class AreaScene extends Phaser.Scene {
         case e.type === 'grub': {
           const en = new GrubEnemy(this, wx, wy);
           this.enemies.push(en);
+          this._roomEverHadMobs = true;
           break;
         }
         case e.type === 'spider': {
           const en = new SpiderEnemy(this, wx, wy);
           this.enemies.push(en);
+          this._roomEverHadMobs = true;
           break;
         }
         case e.type === 'boss': {
           const b = new BugBoss(this, wx, wy);
           this.boss = b;
           this.enemies.push(b);
+          this._roomEverHadMobs = true;
           break;
         }
         case e.type === 'grace': {
@@ -158,11 +161,14 @@ export class AreaScene extends Phaser.Scene {
           break;
         }
         case e.type === 'gate': {
-          this.gates.push({ ...e, wx, wy, opened: false });
+          const sprite = this.add.image(wx, wy, 'prop_door_locked').setDepth(6);
+          this.gates.push({ ...e, wx, wy, opened: false, sprite });
           break;
         }
         case e.type === 'transition': {
-          this.transitions.push({ ...e, wx, wy });
+          const sprite = this.add.image(wx, wy, 'prop_door_open').setDepth(6);
+          this._pulseDoor(sprite);
+          this.transitions.push({ ...e, wx, wy, sprite });
           break;
         }
         case e.type === 'switch': {
@@ -404,6 +410,15 @@ export class AreaScene extends Phaser.Scene {
       this.physics.add.collider(en, this.solidTiles);
     }
     this.lockOn.target = null;
+    // Clear-gates re-lock on rest so the player must clear again.
+    this._roomCleared = false;
+    for (const g of this.gates) {
+      if (g.requires === 'clear' && !g.opened && g.sprite) {
+        this.tweens.killTweensOf(g.sprite);
+        g.sprite.setTexture('prop_door_locked');
+        g.sprite.setAlpha(1);
+      }
+    }
   }
 
   _flashMapName(override) {
@@ -520,6 +535,14 @@ export class AreaScene extends Phaser.Scene {
       if (d < 12) this._collectPickup(p, i);
     }
 
+    // room-cleared detection — fires once when the last mob dies, before the
+    // gate loop so the message and door-open swap show even if the player
+    // killed the final mob standing on the exit.
+    if (!this._roomCleared && this._roomEverHadMobs && this._allMobsDead()) {
+      this._roomCleared = true;
+      this._onRoomCleared();
+    }
+
     // gates
     for (const g of this.gates) {
       if (g.opened) continue;
@@ -634,6 +657,7 @@ export class AreaScene extends Phaser.Scene {
   _gateUnlocked(g) {
     if (!g.requires) return true;
     if (g.requires === 'bone_key') return this.player.hasKey;
+    if (g.requires === 'clear') return this._allMobsDead();
     return this.player.flags.has(g.requires);
   }
 
@@ -643,6 +667,7 @@ export class AreaScene extends Phaser.Scene {
     const hint = ({
       bone_key: 'a key turns somewhere in the dark...',
       boss_switch: 'a rune-circle waits to be lit.',
+      clear: 'the door is sealed — slay the rest.',
     })[g.requires] || 'sealed.';
     const t = this.add.text(g.wx, g.wy - 18, hint, {
       fontFamily: 'Courier New, monospace',
@@ -650,6 +675,46 @@ export class AreaScene extends Phaser.Scene {
       color: '#7d6b8a',
     }).setOrigin(0.5).setDepth(50);
     this.tweens.add({ targets: t, alpha: 0, duration: 1400, onComplete: () => t.destroy() });
+  }
+
+  _allMobsDead() {
+    return this.enemies.every((e) => e.dying || !e.active);
+  }
+
+  _pulseDoor(sprite) {
+    this.tweens.add({
+      targets: sprite,
+      alpha: { from: 1.0, to: 0.7 },
+      duration: 900,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    });
+  }
+
+  _onRoomCleared() {
+    // Only guide the player if this room actually has a clear-gated exit.
+    const clearGates = this.gates.filter((g) => g.requires === 'clear');
+    if (clearGates.length === 0) return;
+    for (const g of clearGates) {
+      if (g.sprite && g.sprite.texture.key !== 'prop_door_open') {
+        g.sprite.setTexture('prop_door_open');
+        this._pulseDoor(g.sprite);
+      }
+    }
+    this.cameras.main.flash(220, 80, 60, 30);
+    const t = this.add.text(CONFIG.GAME_W / 2, CONFIG.GAME_H / 2 - 40, 'the way opens — find the door', {
+      fontFamily: 'Courier New, monospace',
+      fontSize: '11px',
+      color: '#c9a449',
+      stroke: '#0b0a10',
+      strokeThickness: 3,
+      letterSpacing: 3,
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(1500).setAlpha(0);
+    this.tweens.add({
+      targets: t, alpha: 1, duration: 500, hold: 1300, yoyo: true,
+      onComplete: () => t.destroy(),
+    });
   }
 
   _switchPressedFx(s) {
@@ -665,6 +730,9 @@ export class AreaScene extends Phaser.Scene {
 
   _gateOpenFx(g) {
     this.cameras.main.flash(220, 80, 30, 30);
+    if (g.sprite && g.sprite.texture.key !== 'prop_door_open') {
+      g.sprite.setTexture('prop_door_open');
+    }
     const txt = this.add.text(g.wx, g.wy - 20, '...the way opens.', {
       fontFamily: 'Courier New, monospace',
       fontSize: '8px',

@@ -686,7 +686,7 @@ export class AreaScene extends Phaser.Scene {
   }
 
   _gateLockedHint(g) {
-    if (this._lockedHintAt && this.time.now - this._lockedHintAt < 1500) return;
+    if (this._lockedHintAt && this.time.now - this._lockedHintAt < 3200) return;
     this._lockedHintAt = this.time.now;
     Audio.play('door_locked');
     const hint = ({
@@ -694,12 +694,14 @@ export class AreaScene extends Phaser.Scene {
       boss_switch: 'a rune-circle waits to be lit.',
       clear: 'the door is sealed — slay the rest.',
     })[g.requires] || 'sealed.';
-    const t = this.add.text(g.wx, g.wy - 18, hint, {
+    const t = this.add.text(g.wx, g.wy - 20, hint, {
       fontFamily: 'Courier New, monospace',
-      fontSize: '8px',
-      color: '#7d6b8a',
+      fontSize: '10px',
+      color: '#d8c8e8',
+      stroke: '#0b0a10',
+      strokeThickness: 2,
     }).setOrigin(0.5).setDepth(50);
-    this.tweens.add({ targets: t, alpha: 0, duration: 1400, onComplete: () => t.destroy() });
+    this.tweens.add({ targets: t, alpha: 0, duration: 3000, delay: 1800, onComplete: () => t.destroy() });
   }
 
   _allMobsDead() {

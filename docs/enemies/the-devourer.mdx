@@ -1,32 +1,32 @@
 ---
 title: "The Devourer"
-description: "The boss. Three phases. 600 HP. No Grace inside."
+description: "The boss. Three phases. 540 HP. No Grace inside."
 ---
 
 A six-legged chitinous horror that has eaten the burrow from the
 inside. Its carapace is dark red and cracked; an eye-cluster pulses
 red at the front. It changes the way it moves at **66% HP** and
-again at **33% HP** — those transitions are mandatory, hard-coded
+again at **33% HP**. Those transitions are mandatory, hard-coded
 to its health bar.
 
 ## Stats
 
 | Property | Value |
 |---|---|
-| HP | 600 |
-| Speed (P1–P2) | 60 |
-| Speed (P3 enraged) | 90 |
-| Contact damage (P1) | 14 |
-| Contact damage (P2) | ~17 |
-| Contact damage (P3) | ~20 |
-| Slam damage | 28 |
-| Projectile damage | 18 |
+| HP | 540 |
+| Speed (P1-P2) | 56 |
+| Speed (P3 enraged) | 78 |
+| Contact damage (P1) | 12 |
+| Contact damage (P2) | ~14 |
+| Contact damage (P3) | ~16 |
+| Slam damage | 24 |
+| Projectile damage | 15 |
 | Phase 2 trigger | below 66% HP |
 | Phase 3 trigger | below 33% HP |
 | Runes per phase transition | 100 |
 | Runes on kill | 600 |
 
-## Phase 1 — "Skitter & Claw" (100% → 66% HP)
+## Phase 1 - "Skitter & Claw" (100% → 66% HP)
 
 The Devourer chases you and throws **claw-swipes** when in melee
 range, plus an occasional **dive-slam**.
@@ -41,23 +41,23 @@ range, plus an occasional **dive-slam**.
   </Card>
   <Card title="Dive-slam" icon="bullseye">
     Telegraph: ~700 ms rear-up (longer than claw). Launches
-    220 px toward you, then a shockwave deals **28 damage** in
+    220 px toward you, then a shockwave deals **24 damage** in
     a 36 px radius around the impact. **Counter**: the long tell
-    is your friend — wait, watch the launch direction, dodge
+    is your friend. Wait, watch the launch direction, dodge
     perpendicular at the last moment.
   </Card>
 </CardGroup>
 
 <Tip>
-  The dive-slam can only happen after a ~1800 ms cooldown. Once
-  you've eaten one, the next ~2 seconds are slam-free — push
+  The dive-slam can only happen after a ~2200 ms cooldown. Once
+  you've eaten one, the next ~2 seconds are slam-free. Push
   damage hard there.
 </Tip>
 
-## Phase 2 — "Cracked & Calling" (66% → 33% HP)
+## Phase 2 - "Cracked & Calling" (66% → 33% HP)
 
 A camera shake and red flash mark the transition. The Devourer's
-carapace cracks open — the sprite changes to its enraged variant
+carapace cracks open. The sprite changes to its enraged variant
 with visible wounds. Its contact damage rises and it gains a new
 attack:
 
@@ -80,27 +80,27 @@ attack:
 - Kill the spawned grubs immediately. Each is a 2-light-attack
   kill but their lunges interrupt your boss combo and burn
   flasks.
-- The boss has a ~9 second cooldown on summon. That's enough time
+- The boss has a ~10 second cooldown on summon. That's enough time
   to clear adds and put real damage into the boss before the next
   call.
 
-## Phase 3 — "Final Burst" (under 33% HP)
+## Phase 3 - "Final Burst" (under 33% HP)
 
-Another shake, another flash. The Devourer becomes **50% faster**
-(speed 90, faster than your walk pace). Contact damage rises again,
+Another shake, another flash. The Devourer becomes about **40% faster**
+(speed 78, faster than your walk pace). Contact damage rises again,
 and a new attack drops:
 
 <Card title="Radial Ichor Burst" icon="explosion">
-  Telegraph: ~600 ms rear-up. Fires **10 ichor projectiles** in a
-  full circle from the boss's body. Each does 18 damage. Travels
-  outward at 100 px/s. **Counter**: roll perpendicular to the boss
-  — you only need to dodge the one or two projectiles on your
+  Telegraph: ~700 ms rear-up. Fires **8 ichor projectiles** in a
+  full circle from the boss's body. Each does 15 damage. Travels
+  outward at 100 px/s. **Counter**: roll perpendicular to the boss.
+  You only need to dodge the one or two projectiles on your
   vector, not all ten.
 </Card>
 
 <Warning>
   In phase 3 the dive-slam is, effectively, **a one-shot if you're
-  full-stamina-flaskless and at low HP**. The slam is 28 damage on
+  full-stamina-flaskless and at low HP**. The slam is 24 damage on
   top of however many flasks you've already burned. Save at least
   one flask for the closer.
 </Warning>
@@ -109,7 +109,7 @@ and a new attack drops:
 
 - **Lock on, strafe wide.** Most projectiles miss if you're moving
   perpendicular when the burst goes off.
-- **Bait the slam, punish the recovery.** The 600 ms post-slam
+- **Bait the slam, punish the recovery.** The 700 ms post-slam
   recovery is the longest opening in the fight.
 - **Don't trade.** P3 contact damage is high enough that a single
   greedy hit costs you a flask.
@@ -117,10 +117,12 @@ and a new attack drops:
 ## Reward
 
 When the Devourer's HP hits zero, it ragdolls in place and a
-**Tooth of the Devourer** drops at its corpse. Walking over the
-tooth triggers the ending fade and the line:
+gold pulse marks the corpse. A **Tooth of the Devourer** drops there
+after the arena settles. Walking over the tooth stops the boss music
+and triggers the ending card:
 
 > *The burrow is quiet again.*
+> *Tooth of the Devourer claimed*
 
 You also gain **600 runes** for the kill (added to the 200 from
 the two phase transitions).

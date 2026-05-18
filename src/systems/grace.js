@@ -12,4 +12,11 @@ export const GraceState = {
     this.lastX = x;
     this.lastY = y;
   },
+
+  reset() {
+    this.lastMap = 'area1';
+    this.lastGraceId = 'a1_grace';
+    this.lastX = 0;
+    this.lastY = 0;
+  },
 };

@@ -1,4 +1,4 @@
-// Procedural audio engine. No external assets — every sound is synthesized
+// Procedural audio engine. No external assets. Every sound is synthesized
 // from oscillators and noise buffers via the Web Audio API. The AudioContext
 // is created lazily on first user gesture (browsers block autoplay).
 
@@ -140,7 +140,7 @@ function noise(c, dest, { dur, peak = 0.3, attack = 0.005, filter, type = 'lowpa
 }
 
 // ----------------------------------------------------------------------------
-// SFX library — every entry is (ctx, dest) => void.
+// SFX library. Every entry is (ctx, dest) => void.
 // ----------------------------------------------------------------------------
 
 const SFX = {
@@ -214,13 +214,18 @@ const SFX = {
     tone(c, d, { freq: 440, freq2: 880, dur: 0.18, type: 'sine', peak: 0.16 });
     noise(c, d, { dur: 0.18, peak: 0.08, filter: 3200, type: 'highpass' });
   },
+  ending_chime(c, d) {
+    tone(c, d, { freq: 330, dur: 1.4, type: 'sine', peak: 0.16, attack: 0.08 });
+    tone(c, d, { freq: 495, dur: 1.6, type: 'sine', peak: 0.13, attack: 0.18 });
+    setTimeout(() => tone(c, d, { freq: 660, dur: 1.2, type: 'triangle', peak: 0.12, attack: 0.04 }), 220);
+  },
   menu_select(c, d) {
     tone(c, d, { freq: 880, freq2: 1320, dur: 0.18, type: 'sine', peak: 0.22 });
   },
 };
 
 // ----------------------------------------------------------------------------
-// Music — looping ambient layers. Each generator returns { gain, stop }.
+// Music: looping ambient layers. Each generator returns { gain, stop }.
 // ----------------------------------------------------------------------------
 
 function buildDrone(c, dest, { roots, lfoRate = 0.08, filterFreq = 600 }) {

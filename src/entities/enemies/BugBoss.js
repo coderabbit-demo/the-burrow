@@ -47,10 +47,10 @@ export class BugBoss extends Enemy {
     }
     if (p === 2) {
       this.animator.play('enraged', ['boss_enraged'], 1, true);
-      this.contactDamage = Math.round(CONFIG.BOSS.CONTACT_DAMAGE * 1.2);
+      this.contactDamage = Math.round(CONFIG.BOSS.CONTACT_DAMAGE * 1.15);
     } else if (p === 3) {
       this.animator.play('enraged', ['boss_enraged'], 1, true);
-      this.contactDamage = Math.round(CONFIG.BOSS.CONTACT_DAMAGE * 1.4);
+      this.contactDamage = Math.round(CONFIG.BOSS.CONTACT_DAMAGE * 1.3);
     }
     if (this.scene?.events) this.scene.events.emit('bossPhase', this.phase);
     this.scene?.events?.emit('runesAwarded', this.runeRewardOnPhase);
@@ -89,7 +89,7 @@ export class BugBoss extends Enemy {
         if (dist < 28 && time > this.attackCooldown) {
           this.behavior = BS.CLAW;
           this.behaviorUntil = time + 380;
-          this.attackCooldown = time + 1300;
+          this.attackCooldown = time + 1500;
           this.animator.play('rear', ['boss_rear_up'], 1, false);
           this.setVelocity(0, 0);
           return;
@@ -97,8 +97,8 @@ export class BugBoss extends Enemy {
         if (dist < 90 && time > this.attackCooldown && Math.random() < 0.012) {
           // dive-slam telegraph
           this.behavior = BS.REAR;
-          this.behaviorUntil = time + 700;
-          this.attackCooldown = time + 1800;
+          this.behaviorUntil = time + 820;
+          this.attackCooldown = time + 2200;
           this.slamUsed = false;
           this.animator.play('rear', ['boss_rear_up'], 1, false);
           this.setVelocity(0, 0);
@@ -107,15 +107,15 @@ export class BugBoss extends Enemy {
         if (this.phase >= 2 && time > this.summonCooldown && Math.random() < 0.006) {
           this.behavior = BS.SUMMON;
           this.behaviorUntil = time + 700;
-          this.summonCooldown = time + 9000;
+          this.summonCooldown = time + 10000;
           this.animator.play('rear', ['boss_rear_up'], 1, false);
           this.setVelocity(0, 0);
           return;
         }
         if (this.phase >= 3 && time > this.burstCooldown) {
           this.behavior = BS.BURST;
-          this.behaviorUntil = time + 600;
-          this.burstCooldown = time + 4500;
+          this.behaviorUntil = time + 700;
+          this.burstCooldown = time + 5500;
           this.animator.play('rear', ['boss_rear_up'], 1, false);
           this.setVelocity(0, 0);
           return;
@@ -160,7 +160,7 @@ export class BugBoss extends Enemy {
             this.scene.cameras.main.shake(140, 0.01);
           }
           this.behavior = BS.RECOVER;
-          this.behaviorUntil = time + 600;
+          this.behaviorUntil = time + 700;
           this.setVelocity(0, 0);
         }
         break;
@@ -183,14 +183,14 @@ export class BugBoss extends Enemy {
       case BS.BURST: {
         if (time > this.behaviorUntil) {
           if (this.scene?.events) {
-            const shots = 10;
+            const shots = 8;
             for (let i = 0; i < shots; i++) {
               const ang = (Math.PI * 2 * i) / shots;
               this.scene.events.emit('bossProjectile', this.x, this.y, Math.cos(ang), Math.sin(ang));
             }
           }
           this.behavior = BS.RECOVER;
-          this.behaviorUntil = time + 600;
+          this.behaviorUntil = time + 700;
         }
         break;
       }

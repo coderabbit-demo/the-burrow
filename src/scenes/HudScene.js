@@ -35,11 +35,35 @@ export class HudScene extends Phaser.Scene {
 
     this.bossActive = false;
 
-    this.game.events.on('hudUpdate', (data) => this._render(data));
-    this.game.events.on('bossActive', (boss) => {
+    this._onHudUpdate = (data) => this._render(data);
+    this._onBossActive = (boss) => {
       this.bossActive = !!boss;
       this.bossLabel.setVisible(!!boss);
+    };
+    this._onHudFadeOut = () => this._fadeOut();
+
+    this.game.events.on('hudUpdate', this._onHudUpdate);
+    this.game.events.on('bossActive', this._onBossActive);
+    this.game.events.on('hudFadeOut', this._onHudFadeOut);
+    this.events.once('shutdown', () => {
+      this.game.events.off('hudUpdate', this._onHudUpdate);
+      this.game.events.off('bossActive', this._onBossActive);
+      this.game.events.off('hudFadeOut', this._onHudFadeOut);
     });
+  }
+
+  _fadeOut() {
+    const targets = [
+      this.bg,
+      this.bars,
+      this.bossBars,
+      this.runeText,
+      this.runeIcon,
+      this.flaskText,
+      this.flaskIcon,
+      this.bossLabel,
+    ];
+    this.tweens.add({ targets, alpha: 0, duration: 700, ease: 'Sine.easeInOut' });
   }
 
   _render(d) {

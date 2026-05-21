@@ -111,13 +111,18 @@ export class AreaScene extends Phaser.Scene {
     this.gates = [];
     this.switches = [];
     this.boss = null;
-    // Reset per-map state — these scene-instance flags persist across scene.restart.
+    // Reset per-map state. These scene-instance flags persist across scene.restart.
     this._roomEverHadMobs = false;
     this._roomCleared = false;
     this._transitioning = false;
     this._lockedHintAt = 0;
 
+    const keyRoomFlag = this._keyRoomVisitFlag(map);
+    const keyRoomVisited = keyRoomFlag ? this.player.flags.has(keyRoomFlag) : false;
+    const skipOnRepeatKeyRoom = new Set(['grub', 'spider', 'key']);
+
     for (const e of map.entities) {
+      if (keyRoomVisited && skipOnRepeatKeyRoom.has(e.type)) continue;
       const wx = e.x * TILE + TILE / 2;
       const wy = e.y * TILE + TILE / 2;
       switch (true) {
@@ -194,6 +199,13 @@ export class AreaScene extends Phaser.Scene {
         }
       }
     }
+
+    if (keyRoomFlag && !keyRoomVisited) this.player.flags.add(keyRoomFlag);
+  }
+
+  _keyRoomVisitFlag(map) {
+    if (!map.entities.some((e) => e.type === 'key')) return null;
+    return `visited_key_room:${this.mapKey}`;
   }
 
   _buildPlayer(map) {
@@ -342,12 +354,87 @@ export class AreaScene extends Phaser.Scene {
     this._bossEnded = true;
     this.player.pickupRunes(CONFIG.RUNES.BOSS_KILL);
     this.game.events.emit('hudUpdate', this._hudPayload());
+    this.game.events.emit('bossActive', null);
+    Audio.play('boss_slam');
+
     const tx = this.boss.x; const ty = this.boss.y;
-    this.time.delayedCall(900, () => {
-      const tooth = new ItemPickup(this, tx, ty, 'tooth');
-      tooth.kind = 'tooth';
-      this.pickups.push(tooth);
+    this._clearBossArenaThreats();
+    this._bossDeathFx(tx, ty);
+    this.time.delayedCall(1100, () => this._spawnFinalTooth(tx, ty));
+  }
+
+  _clearBossArenaThreats() {
+    if (this._projectiles) {
+      for (const p of this._projectiles) p.destroy();
+      this._projectiles = [];
+    }
+    for (const en of this.enemies) {
+      if (en !== this.boss && en.active) en.destroy();
+    }
+    this.enemies = this.enemies.filter((en) => en === this.boss || en.active);
+  }
+
+  _bossDeathFx(x, y) {
+    this.cameras.main.shake(520, 0.014);
+    this.cameras.main.flash(260, 120, 30, 30);
+
+    const pulse = this.add.image(x, y, 'slam_ring')
+      .setDepth(18)
+      .setAlpha(0.85)
+      .setTint(0xc9a449)
+      .setScale(0.35);
+    this.tweens.add({
+      targets: pulse,
+      scale: 2.3,
+      alpha: 0,
+      duration: 900,
+      ease: 'Sine.easeOut',
+      onComplete: () => pulse.destroy(),
     });
+  }
+
+  _spawnFinalTooth(x, y) {
+    if (this._finalToothSpawned) return;
+    this._finalToothSpawned = true;
+
+    const tooth = new ItemPickup(this, x, y, 'tooth');
+    tooth.kind = 'tooth';
+    tooth.setScale(1.25);
+    this.pickups.push(tooth);
+
+    const ring = this.add.image(x, y, 'slam_ring')
+      .setDepth(5)
+      .setAlpha(0.7)
+      .setTint(0xc9a449)
+      .setScale(0.45);
+    this.tweens.add({
+      targets: ring,
+      scale: 0.95,
+      alpha: 0.2,
+      duration: 1000,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    });
+    tooth.once('destroy', () => ring.destroy());
+
+    const label = this.add.text(x, y - 24, 'claim the tooth', {
+      fontFamily: 'Courier New, monospace',
+      fontSize: '9px',
+      color: '#c9a449',
+      stroke: '#0b0a10',
+      strokeThickness: 2,
+    }).setOrigin(0.5).setDepth(60);
+    this.tweens.add({
+      targets: label,
+      y: y - 32,
+      alpha: 0.55,
+      duration: 1000,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    });
+    tooth.once('destroy', () => label.destroy());
   }
 
   _onPlayerDied() {
@@ -385,6 +472,7 @@ export class AreaScene extends Phaser.Scene {
       hasEmber: this.player.hasEmber,
       lightRadius: this.player.lightRadius,
       droppedRunes: this.player.droppedRunes,
+      flags: [...this.player.flags],
     };
     this.scene.restart({
       mapKey: GraceState.lastMap,
@@ -483,6 +571,10 @@ export class AreaScene extends Phaser.Scene {
 
   update(time, delta) {
     if (!this.player) return;
+    if (this._endingActive) {
+      this.player.setVelocity(0, 0);
+      return;
+    }
 
     // input vector
     const inp = {
@@ -558,7 +650,7 @@ export class AreaScene extends Phaser.Scene {
       if (d < 12) this._collectPickup(p, i);
     }
 
-    // room-cleared detection — fires once when the last mob dies, before the
+    // room-cleared detection fires once when the last mob dies, before the
     // gate loop so the message and door-open swap show even if the player
     // killed the final mob standing on the exit.
     if (!this._roomCleared && this._roomEverHadMobs && this._allMobsDead()) {
@@ -581,7 +673,7 @@ export class AreaScene extends Phaser.Scene {
       }
     }
 
-    // switches — touching a dormant switch lights it and sets its flag
+    // switches: touching a dormant switch lights it and sets its flag
     for (const s of this.switches) {
       if (s.pressed) continue;
       const d = Phaser.Math.Distance.Between(this.player.x, this.player.y, s.x, s.y);
@@ -657,7 +749,7 @@ export class AreaScene extends Phaser.Scene {
   }
 
   _collectPickup(p, idx) {
-    Audio.play('pickup');
+    Audio.play(p.kind === 'tooth' ? 'ending_chime' : 'pickup');
     if (p.kind === 'flask') this.player.pickupFlask();
     else if (p.kind === 'key') this.player.pickupKey();
     else if (p.kind === 'ember') this.player.pickupEmber();
@@ -692,7 +784,7 @@ export class AreaScene extends Phaser.Scene {
     const hint = ({
       bone_key: 'a key turns somewhere in the dark...',
       boss_switch: 'a rune-circle waits to be lit.',
-      clear: 'the door is sealed — slay the rest.',
+      clear: 'the door is sealed. slay the rest.',
     })[g.requires] || 'sealed.';
     const t = this.add.text(g.wx, g.wy - 20, hint, {
       fontFamily: 'Courier New, monospace',
@@ -731,7 +823,7 @@ export class AreaScene extends Phaser.Scene {
     }
     Audio.play('room_cleared');
     this.cameras.main.flash(220, 80, 60, 30);
-    const t = this.add.text(CONFIG.GAME_W / 2, CONFIG.GAME_H / 2 - 40, 'the way opens — find the door', {
+    const t = this.add.text(CONFIG.GAME_W / 2, CONFIG.GAME_H / 2 - 40, 'the way opens. find the door', {
       fontFamily: 'Courier New, monospace',
       fontSize: '11px',
       color: '#c9a449',
@@ -798,14 +890,59 @@ export class AreaScene extends Phaser.Scene {
   _showEnding() {
     if (this._endingShown) return;
     this._endingShown = true;
-    this.cameras.main.fadeOut(2200, 0, 0, 0);
-    const t = this.add.text(CONFIG.GAME_W / 2, CONFIG.GAME_H / 2, 'The burrow is quiet again.', {
+    this._endingActive = true;
+    this.player.setVelocity(0, 0);
+    this.player.invulnUntil = Number.POSITIVE_INFINITY;
+    Audio.stopMusic();
+    this.game.events.emit('hudFadeOut');
+
+    const shade = this.add.rectangle(0, 0, CONFIG.GAME_W, CONFIG.GAME_H, 0x000000, 0)
+      .setOrigin(0)
+      .setScrollFactor(0)
+      .setDepth(1900);
+    this.tweens.add({ targets: shade, alpha: 0.88, duration: 1600, ease: 'Sine.easeInOut' });
+
+    const title = this.add.text(CONFIG.GAME_W / 2, CONFIG.GAME_H / 2 - 18, 'The burrow is quiet again.', {
       fontFamily: 'Courier New, monospace',
       fontSize: '14px',
       color: '#c9a449',
       stroke: '#0b0a10',
       strokeThickness: 3,
     }).setOrigin(0.5).setScrollFactor(0).setDepth(2000).setAlpha(0);
-    this.tweens.add({ targets: t, alpha: 1, duration: 2200, delay: 400 });
+    const claimed = this.add.text(CONFIG.GAME_W / 2, CONFIG.GAME_H / 2 + 12, 'Tooth of the Devourer claimed', {
+      fontFamily: 'Courier New, monospace',
+      fontSize: '9px',
+      color: '#a89bb0',
+      stroke: '#0b0a10',
+      strokeThickness: 2,
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(2000).setAlpha(0);
+    const prompt = this.add.text(CONFIG.GAME_W / 2, CONFIG.GAME_H / 2 + 54, '[ENTER] return to title', {
+      fontFamily: 'Courier New, monospace',
+      fontSize: '10px',
+      color: '#7d6b8a',
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(2000).setAlpha(0);
+
+    this.tweens.add({ targets: title, alpha: 1, duration: 1200, delay: 500 });
+    this.tweens.add({ targets: claimed, alpha: 1, duration: 1000, delay: 1200 });
+    this.tweens.add({
+      targets: prompt,
+      alpha: 1,
+      duration: 900,
+      delay: 2100,
+      onComplete: () => {
+        this.tweens.add({ targets: prompt, alpha: 0.35, duration: 900, yoyo: true, repeat: -1 });
+      },
+    });
+
+    if (!this._endingInputBound) {
+      this._endingInputBound = true;
+      this.input.keyboard.once('keydown-ENTER', () => this._returnToTitle());
+    }
+  }
+
+  _returnToTitle() {
+    Audio.play('menu_select');
+    this.scene.stop('HudScene');
+    this.scene.start('TitleScene');
   }
 }

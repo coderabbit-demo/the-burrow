@@ -9,7 +9,7 @@
 //   # = wall stone  r = wall root      B = wall bone
 //
 // Entity types:
-//   grub, spider, grace, flask, key, ember, gate, transition, prop:<name>
+//   grub, spider, grace, flask, two_heart_potion, key, ember, gate, transition, prop:<name>
 //
 // "transition" is a trigger zone that loads another map.
 // "gate" is a solid that opens once a flag is set.
@@ -137,6 +137,7 @@ export const MAPS = {
       { type: 'spider', x: 23, y: 5 },
       { type: 'spider', x: 6,  y: 14 },
       { type: 'flask',  x: 14, y: 10 },
+      { type: 'two_heart_potion', x: 12, y: 11 },
       { type: 'prop:tombstone',         x: 3,  y: 5 },
       { type: 'prop:tombstone_cracked', x: 4,  y: 5 },
       { type: 'prop:tombstone',         x: 28, y: 12 },

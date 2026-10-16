@@ -30,6 +30,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.stamina = CONFIG.PLAYER.STAMINA_MAX;
     this.staminaMax = CONFIG.PLAYER.STAMINA_MAX;
     this.flasks = CONFIG.PLAYER.FLASK_MAX;
+    this.potions = 0;
     this.runes = 0;
     this.droppedRunes = null; // { mapKey, x, y, amount } or null
     this.lightRadius = CONFIG.PLAYER.LIGHT_RADIUS;
@@ -113,6 +114,15 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     return true;
   }
 
+  drinkPotion() {
+    if (this.isDead() || this.potions <= 0 || this.hp >= this.hpMax) return false;
+    this.potions--;
+    this.hp = Math.min(this.hpMax, this.hp + CONFIG.PLAYER.POTION_HEAL);
+    this.scene.cameras.main.flash(120, 200, 100, 60);
+    Audio.play('flask');
+    return true;
+  }
+
   takeDamage(amount, fromX, fromY) {
     if (this.isDead()) return;
     const now = this.scene.time.now;
@@ -165,6 +175,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   pickupRunes(amount) { this.runes += amount; }
   pickupFlask() { this.flasks = Math.min(CONFIG.PLAYER.FLASK_MAX, this.flasks + 1); }
+  pickupPotion() {
+    if (this.potions >= CONFIG.PLAYER.POTION_MAX) return false;
+    this.potions++;
+    return true;
+  }
   pickupKey() { this.hasKey = true; }
   pickupEmber() {
     this.hasEmber = true;

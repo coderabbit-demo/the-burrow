@@ -24,6 +24,7 @@ Open the served URL (e.g. `http://localhost:3000`) in Chrome or Safari.
 | `L` | Toggle lock-on |
 | `Tab` | Cycle lock-on target |
 | `F` | Drink Carrot Flask (heal) |
+| `G` | Drink Two-Heart Potion (120 HP, capped at maximum) |
 | `E` | Rest at Grace Lantern |
 | `Enter` | Start (title screen) |
 

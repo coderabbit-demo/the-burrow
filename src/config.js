@@ -20,6 +20,8 @@ export const CONFIG = {
     INVULN_HIT: 600,
     FLASK_HEAL: 60,
     FLASK_MAX: 3,
+    POTION_HEAL: 120,
+    POTION_MAX: 1,
     LIGHT_RADIUS: 150,
     LIGHT_RADIUS_EMBER: 210,
   },

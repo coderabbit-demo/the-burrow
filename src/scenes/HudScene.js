@@ -26,6 +26,14 @@ export class HudScene extends Phaser.Scene {
     this.flaskIcon = this.add.image(28, 32, 'item_carrot_flask')
       .setScrollFactor(0).setDepth(1002).setOrigin(0, 0.5).setScale(1);
 
+    this.potionIcon = this.add.image(54, 32, 'item_two_heart_potion')
+      .setScrollFactor(0).setDepth(1002).setOrigin(0, 0.5);
+    this.potionText = this.add.text(73, 28, 'G x0', {
+      fontFamily: 'Courier New, monospace',
+      fontSize: '10px',
+      color: '#c9a449',
+    }).setScrollFactor(0).setDepth(1002);
+
     this.bossLabel = this.add.text(CONFIG.GAME_W / 2, CONFIG.GAME_H - 28, 'THE DEVOURER', {
       fontFamily: 'Courier New, monospace',
       fontSize: '11px',
@@ -74,6 +82,7 @@ export class HudScene extends Phaser.Scene {
     // Runes
     this.runeText.setText(String(d.runes));
     this.flaskText.setText('x' + d.flasks);
+    this.potionText.setText('G x' + (d.potions ?? 0));
 
     // Boss bar
     this.bossBars.clear();

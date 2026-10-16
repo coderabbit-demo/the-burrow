@@ -40,7 +40,7 @@ export class TitleScene extends Phaser.Scene {
 
     this.tweens.add({ targets: prompt, alpha: 0.3, duration: 900, yoyo: true, repeat: -1 });
 
-    this.add.text(GAME_W / 2, GAME_H - 26, 'WASD move  ·  J light  ·  K heavy  ·  Shift roll  ·  L lock-on  ·  F flask  ·  E rest', {
+    this.add.text(GAME_W / 2, GAME_H - 26, 'WASD move  ·  J light  ·  K heavy  ·  Shift roll  ·  L lock-on  ·  F flask  ·  G potion  ·  E rest', {
       fontFamily: 'Courier New, monospace',
       fontSize: '8px',
       color: '#5a4a6b',

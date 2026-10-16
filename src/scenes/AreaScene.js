@@ -151,6 +151,11 @@ export class AreaScene extends Phaser.Scene {
           this.pickups.push(p);
           break;
         }
+        case e.type === 'two_heart_potion': {
+          const p = new ItemPickup(this, wx, wy, 'two_heart_potion');
+          this.pickups.push(p);
+          break;
+        }
         case e.type === 'key': {
           const p = new ItemPickup(this, wx, wy, 'bone_key');
           p.kind = 'key';
@@ -211,6 +216,7 @@ export class AreaScene extends Phaser.Scene {
       this.player.hp = oldState.hp;
       this.player.stamina = oldState.stamina;
       this.player.flasks = oldState.flasks;
+      this.player.potions = oldState.potions ?? 0;
       this.player.runes = oldState.runes;
       this.player.hasKey = oldState.hasKey;
       this.player.hasEmber = oldState.hasEmber;
@@ -244,7 +250,7 @@ export class AreaScene extends Phaser.Scene {
       upArrow: 'UP', downArrow: 'DOWN', leftArrow: 'LEFT', rightArrow: 'RIGHT',
       light: 'J', heavy: 'K', roll: 'SHIFT',
       lock: 'L', cycle: 'TAB',
-      flask: 'F', interact: 'E', mute: 'M',
+      flask: 'F', potion: 'G', interact: 'E', mute: 'M',
     });
     this.keys.light.on('down', () => this.player.tryAttack(false));
     this.keys.heavy.on('down', () => this.player.tryAttack(true));
@@ -259,6 +265,9 @@ export class AreaScene extends Phaser.Scene {
     this.keys.cycle.on('down', () => this.lockOn.cycle(this.enemies));
     this.keys.flask.on('down', () => {
       if (this.player.drinkFlask()) this.game.events.emit('hudUpdate', this._hudPayload());
+    });
+    this.keys.potion.on('down', () => {
+      if (this.player.drinkPotion()) this.game.events.emit('hudUpdate', this._hudPayload());
     });
     this.keys.interact.on('down', () => this._tryInteract());
     this.keys.mute.on('down', () => this._toggleMute());
@@ -380,6 +389,7 @@ export class AreaScene extends Phaser.Scene {
       hp: CONFIG.PLAYER.HP_MAX,
       stamina: CONFIG.PLAYER.STAMINA_MAX,
       flasks: CONFIG.PLAYER.FLASK_MAX,
+      potions: 0,
       runes: 0,
       hasKey: this.player.hasKey,
       hasEmber: this.player.hasEmber,
@@ -474,6 +484,7 @@ export class AreaScene extends Phaser.Scene {
       stamina: this.player.stamina,
       staminaMax: this.player.staminaMax,
       flasks: this.player.flasks,
+      potions: this.player.potions,
       runes: this.player.runes,
       bossActive: this.isBoss && this.boss && !this.boss.dying,
       bossHp: this.boss ? this.boss.hp : 0,
@@ -657,6 +668,7 @@ export class AreaScene extends Phaser.Scene {
   }
 
   _collectPickup(p, idx) {
+    if (p.kind === 'two_heart_potion' && !this.player.pickupPotion()) return;
     Audio.play('pickup');
     if (p.kind === 'flask') this.player.pickupFlask();
     else if (p.kind === 'key') this.player.pickupKey();
@@ -664,7 +676,7 @@ export class AreaScene extends Phaser.Scene {
     else if (p.kind === 'tooth') {
       this._tookTooth = true;
     }
-    const label = ({ flask: 'Carrot Flask +1', key: 'Bone Key', ember: 'Ember of the Hollow', tooth: 'Tooth of the Devourer' })[p.kind] || '';
+    const label = ({ two_heart_potion: 'Two-Heart Potion +1', flask: 'Carrot Flask +1', key: 'Bone Key', ember: 'Ember of the Hollow', tooth: 'Tooth of the Devourer' })[p.kind] || '';
     if (label) {
       const t = this.add.text(p.x, p.y - 16, label, {
         fontFamily: 'Courier New, monospace',
@@ -778,6 +790,7 @@ export class AreaScene extends Phaser.Scene {
       hp: this.player.hp,
       stamina: this.player.stamina,
       flasks: this.player.flasks,
+      potions: this.player.potions,
       runes: this.player.runes,
       hasKey: this.player.hasKey,
       hasEmber: this.player.hasEmber,

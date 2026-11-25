@@ -26,6 +26,7 @@ Open the served URL (e.g. `http://localhost:3000`) in Chrome or Safari.
 | `F` | Drink Carrot Flask (heal) |
 | `E` | Rest at Grace Lantern |
 | `Enter` | Start (title screen) |
+| `Esc` | Open the pause menu or resume gameplay |
 
 ## The Run
 

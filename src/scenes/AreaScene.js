@@ -61,7 +61,10 @@ function tileTexture(variants, fallback, x, y) {
 }
 
 export class AreaScene extends Phaser.Scene {
-  constructor() { super('AreaScene'); }
+  constructor() {
+    super('AreaScene');
+    this.elapsedTime = 0;
+  }
 
   init(data) {
     this.mapKey = data?.mapKey || 'area1';
@@ -85,7 +88,7 @@ export class AreaScene extends Phaser.Scene {
     this._buildEntities(map);
     this._wireCollisions();
     this._wireInput();
-    this._wireBossEvents();
+    this._wireSceneEvents();
 
     // Lock-on
     this.lockOn = new LockOn(this, this.player);
@@ -292,7 +295,12 @@ export class AreaScene extends Phaser.Scene {
   }
 
   _wireInput() {
-    this.input.keyboard.addCapture(['SPACE', 'TAB']);
+    this.input.keyboard.addCapture(['SPACE', 'TAB', 'ESC']);
+    this.input.keyboard.on('keydown-ESC', (event) => {
+      if (event.repeat) return;
+      this.scene.pause();
+      this.scene.launch('PauseScene');
+    });
     this.keys = this.input.keyboard.addKeys({
       up: 'W', down: 'S', left: 'A', right: 'D',
       upArrow: 'UP', downArrow: 'DOWN', leftArrow: 'LEFT', rightArrow: 'RIGHT',
@@ -316,8 +324,6 @@ export class AreaScene extends Phaser.Scene {
     });
     this.keys.interact.on('down', () => this._tryInteract());
     this.keys.mute.on('down', () => this._toggleMute());
-
-    this.events.on('playerDied', () => this._onPlayerDied());
   }
 
   _toggleMute() {
@@ -330,17 +336,31 @@ export class AreaScene extends Phaser.Scene {
     this.tweens.add({ targets: t, alpha: 0, duration: 1000, onComplete: () => t.destroy() });
   }
 
-  _wireBossEvents() {
-    this.events.on('bossSlam', (x, y, dmg) => this._bossSlam(x, y, dmg));
-    this.events.on('bossSummon', (x, y) => {
-      const g = new GrubEnemy(this, x, y);
-      g.hp = 18; g.hpMax = 18;
-      this.enemies.push(g);
-      this.physics.add.collider(g, this.solidTiles);
+  _wireSceneEvents() {
+    const handlers = {
+      playerDied: this._onPlayerDied,
+      bossSlam: this._bossSlam,
+      bossProjectile: this._spawnProjectile,
+      bossDefeated: this._bossDefeated,
+      bossSummon: (x, y) => {
+        const grub = new GrubEnemy(this, x, y);
+        grub.hp = grub.hpMax = 18;
+        this.enemies.push(grub);
+        this.physics.add.collider(grub, this.solidTiles);
+      },
+      bossPhase: (phase) => {
+        Audio.play('boss_roar');
+        this._flashMapName(`PHASE ${phase}`);
+      },
+    };
+    for (const [event, handler] of Object.entries(handlers)) {
+      this.events.on(event, handler, this);
+    }
+    this.events.once('shutdown', () => {
+      for (const [event, handler] of Object.entries(handlers)) {
+        this.events.off(event, handler, this);
+      }
     });
-    this.events.on('bossProjectile', (x, y, dx, dy) => this._spawnProjectile(x, y, dx, dy));
-    this.events.on('bossPhase', (p) => { Audio.play('boss_roar'); this._flashMapName(`PHASE ${p}`); });
-    this.events.on('bossDefeated', () => this._bossDefeated());
   }
 
   _bossSlam(x, y, dmg) {
@@ -354,7 +374,7 @@ export class AreaScene extends Phaser.Scene {
       onComplete: () => ring.destroy(),
     });
     const d = Phaser.Math.Distance.Between(x, y, this.player.x, this.player.y);
-    if (d < 36 && !this.player.isInvuln(this.time.now)) {
+    if (d < 36 && !this.player.isInvuln(this.elapsedTime)) {
       this.player.takeDamage(dmg, x, y);
       this.game.events.emit('hudUpdate', this._hudPayload());
     }
@@ -368,7 +388,7 @@ export class AreaScene extends Phaser.Scene {
     proj.body.setOffset(1, 1);
     proj.setVelocity(dx * 100, dy * 100);
     proj._dmg = CONFIG.BOSS.PROJECTILE_DAMAGE;
-    proj._lifeUntil = this.time.now + 4000;
+    proj._lifeUntil = this.elapsedTime + 4000;
     this._projectiles.push(proj);
   }
 
@@ -534,8 +554,12 @@ export class AreaScene extends Phaser.Scene {
     };
   }
 
-  update(time, delta) {
+  update(_time, delta) {
     if (!this.player) return;
+
+    // Combat deadlines advance only while the area is running.
+    this.elapsedTime += delta;
+    const time = this.elapsedTime;
 
     // input vector
     const inp = {
@@ -739,8 +763,8 @@ export class AreaScene extends Phaser.Scene {
   }
 
   _gateLockedHint(g) {
-    if (this._lockedHintAt && this.time.now - this._lockedHintAt < 3200) return;
-    this._lockedHintAt = this.time.now;
+    if (this._lockedHintAt && this.elapsedTime - this._lockedHintAt < 3200) return;
+    this._lockedHintAt = this.elapsedTime;
     Audio.play('door_locked');
     const hint = ({
       bone_key: 'a key turns somewhere in the dark...',

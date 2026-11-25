@@ -60,7 +60,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   // Attempt to begin an attack (light or heavy).
   tryAttack(heavy = false) {
     if (this.isDead() || this.isResting()) return false;
-    const now = this.scene.time.now;
+    const now = this.scene.elapsedTime;
     if (this.isAttacking(now) || this.isRolling(now)) return false;
     const cost = CONFIG.PLAYER.ATTACK_COST + (heavy ? 12 : 0);
     if (this.stamina < cost) return false;
@@ -84,7 +84,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   // Attempt to roll in the given direction vector.
   tryRoll(vx, vy) {
     if (this.isDead() || this.isResting()) return false;
-    const now = this.scene.time.now;
+    const now = this.scene.elapsedTime;
     if (this.isRolling(now)) return false;
     if (this.stamina < CONFIG.PLAYER.ROLL_COST) return false;
     if (vx === 0 && vy === 0) {
@@ -115,7 +115,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   takeDamage(amount, fromX, fromY) {
     if (this.isDead()) return;
-    const now = this.scene.time.now;
+    const now = this.scene.elapsedTime;
     if (this.isInvuln(now)) return;
     this.hp -= amount;
     this.invulnUntil = now + CONFIG.PLAYER.INVULN_HIT;
@@ -183,7 +183,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   // Returns the player's current attack hitbox AABB in world coords, or null.
   getAttackHitbox() {
-    const now = this.scene.time.now;
+    const now = this.scene.elapsedTime;
     if (!this.isAttacking(now)) return null;
     const reach = CONFIG.COMBAT.HITBOX_REACH;
     const w = CONFIG.COMBAT.HITBOX_W;

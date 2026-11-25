@@ -13,6 +13,53 @@ import { Audio } from '../systems/audio.js';
 
 const TILE = CONFIG.TILE;
 
+// Map characters still determine collision. These names only select textures.
+const TILE_ART = {
+  area1: {
+    '.': ['dirt', 'dirt', 'warren_scree'],
+    ',': ['dirt2', 'warren_rooted'],
+    '#': ['wall_stone', 'warren_wall_split'],
+    r: ['wall_root', 'warren_wall_root_tangled'],
+  },
+  area1_keyroom: {
+    '.': ['alcove_cobbles', 'alcove_cobbles', 'alcove_cobbles_worn'],
+    ',': ['alcove_cobbles_thread', 'alcove_cobbles_worn'],
+    '#': ['alcove_wall', 'alcove_wall_worn'],
+    r: ['wall_root', 'warren_wall_root_tangled'],
+  },
+  area2: {
+    '.': ['choir_silt', 'choir_silt_moss', 'choir_silt_gravel'],
+    ',': ['choir_silt_moss', 'choir_silt_gravel'],
+    s: ['choir_flagstones', 'choir_flagstones_chipped'],
+    m: ['mossy_stone', 'choir_flagstones_chipped'],
+    '#': ['choir_wall', 'choir_wall_moss'],
+  },
+  antechamber: {
+    '.': ['ante_paving', 'ante_paving', 'ante_paving_chipped'],
+    ',': ['ante_paving_chipped'],
+    s: ['ante_inlay'],
+    c: ['ante_inlay_split'],
+    '#': ['ante_wall', 'ante_wall_carved'],
+    r: ['ante_wall_root', 'ante_wall_root_split'],
+  },
+  boss: {
+    s: ['hollow_slate'],
+    c: ['hollow_slate_split'],
+    b: ['hollow_blood', 'hollow_blood_thick'],
+    '#': ['hollow_wall', 'hollow_wall_split'],
+    B: ['wall_bone', 'hollow_wall_bone_scattered'],
+  },
+};
+
+function tileTexture(variants, fallback, x, y) {
+  if (!variants) return fallback;
+
+  // A coordinate hash keeps the art stable on restart without visible stripes.
+  const seed = Math.imul(x + 1, 374761393) ^ Math.imul(y + 1, 668265263);
+  const hash = Math.imul(seed ^ (seed >>> 13), 1274126177) >>> 0;
+  return `tile_${variants[hash % variants.length]}`;
+}
+
 export class AreaScene extends Phaser.Scene {
   constructor() {
     super('AreaScene');
@@ -41,10 +88,7 @@ export class AreaScene extends Phaser.Scene {
     this._buildEntities(map);
     this._wireCollisions();
     this._wireInput();
-    this._wireBossEvents();
-
-    // Lighting
-    this.lighting = new LightingLayer(this);
+    this._wireSceneEvents();
 
     // Lock-on
     this.lockOn = new LockOn(this, this.player);
@@ -52,9 +96,16 @@ export class AreaScene extends Phaser.Scene {
     // Camera
     const w = map.tiles[0].length * TILE;
     const h = map.tiles.length * TILE;
-    this.cameras.main.setBounds(0, 0, w, h);
-    this.cameras.main.startFollow(this.player, true, 0.18, 0.18);
-    this.cameras.main.setBackgroundColor('#04030a');
+    const camera = this.cameras.main;
+    const viewHeight = CONFIG.GAME_H - CONFIG.HUD_TOP_HEIGHT - (this.isBoss ? CONFIG.BOSS_HUD_HEIGHT : 0);
+    camera.setViewport(0, CONFIG.HUD_TOP_HEIGHT, CONFIG.GAME_W, viewHeight);
+    // A room smaller than the viewport has equal margins on both sides.
+    const boundsW = Math.max(w, camera.width);
+    const boundsH = Math.max(h, camera.height);
+    camera.setBounds((w - boundsW) / 2, (h - boundsH) / 2, boundsW, boundsH);
+    camera.startFollow(this.player, true, 0.18, 0.18);
+    camera.setBackgroundColor('#04030a');
+    this.lighting = new LightingLayer(this);
     this.physics.world.setBounds(0, 0, w, h);
 
     // HUD broadcast
@@ -83,6 +134,7 @@ export class AreaScene extends Phaser.Scene {
   _buildTiles(map) {
     this.tileGroup = this.add.group();
     this.solidTiles = this.physics.add.staticGroup();
+    const art = TILE_ART[this.mapKey];
     for (let ty = 0; ty < map.tiles.length; ty++) {
       const row = map.tiles[ty];
       for (let tx = 0; tx < row.length; tx++) {
@@ -91,15 +143,13 @@ export class AreaScene extends Phaser.Scene {
         if (!def) continue;
         const wx = tx * TILE + TILE / 2;
         const wy = ty * TILE + TILE / 2;
-        const img = this.add.image(wx, wy, def.key);
-        img.setDepth(def.solid ? 1 : 0);
+        const key = tileTexture(art?.[ch], def.key, tx, ty);
         if (def.solid) {
-          const body = this.physics.add.staticImage(wx, wy, def.key);
+          const body = this.physics.add.staticImage(wx, wy, key);
           body.refreshBody();
           this.solidTiles.add(body);
-          img.setVisible(false); // body sprite already shows it
         } else {
-          this.tileGroup.add(img);
+          this.tileGroup.add(this.add.image(wx, wy, key));
         }
       }
     }
@@ -115,6 +165,10 @@ export class AreaScene extends Phaser.Scene {
     this.switches = [];
     this.boss = null;
     // Reset per-map state — these scene-instance flags persist across scene.restart.
+    this._died = false;
+    this._bossEnded = false;
+    this._runeDrops = [];
+    this._projectiles = [];
     this._roomEverHadMobs = false;
     this._roomCleared = false;
     this._transitioning = false;
@@ -270,8 +324,6 @@ export class AreaScene extends Phaser.Scene {
     });
     this.keys.interact.on('down', () => this._tryInteract());
     this.keys.mute.on('down', () => this._toggleMute());
-
-    this.events.on('playerDied', () => this._onPlayerDied());
   }
 
   _toggleMute() {
@@ -284,17 +336,31 @@ export class AreaScene extends Phaser.Scene {
     this.tweens.add({ targets: t, alpha: 0, duration: 1000, onComplete: () => t.destroy() });
   }
 
-  _wireBossEvents() {
-    this.events.on('bossSlam', (x, y, dmg) => this._bossSlam(x, y, dmg));
-    this.events.on('bossSummon', (x, y) => {
-      const g = new GrubEnemy(this, x, y);
-      g.hp = 18; g.hpMax = 18;
-      this.enemies.push(g);
-      this.physics.add.collider(g, this.solidTiles);
+  _wireSceneEvents() {
+    const handlers = {
+      playerDied: this._onPlayerDied,
+      bossSlam: this._bossSlam,
+      bossProjectile: this._spawnProjectile,
+      bossDefeated: this._bossDefeated,
+      bossSummon: (x, y) => {
+        const grub = new GrubEnemy(this, x, y);
+        grub.hp = grub.hpMax = 18;
+        this.enemies.push(grub);
+        this.physics.add.collider(grub, this.solidTiles);
+      },
+      bossPhase: (phase) => {
+        Audio.play('boss_roar');
+        this._flashMapName(`PHASE ${phase}`);
+      },
+    };
+    for (const [event, handler] of Object.entries(handlers)) {
+      this.events.on(event, handler, this);
+    }
+    this.events.once('shutdown', () => {
+      for (const [event, handler] of Object.entries(handlers)) {
+        this.events.off(event, handler, this);
+      }
     });
-    this.events.on('bossProjectile', (x, y, dx, dy) => this._spawnProjectile(x, y, dx, dy));
-    this.events.on('bossPhase', (p) => { Audio.play('boss_roar'); this._flashMapName(`PHASE ${p}`); });
-    this.events.on('bossDefeated', () => this._bossDefeated());
   }
 
   _bossSlam(x, y, dmg) {
@@ -323,7 +389,6 @@ export class AreaScene extends Phaser.Scene {
     proj.setVelocity(dx * 100, dy * 100);
     proj._dmg = CONFIG.BOSS.PROJECTILE_DAMAGE;
     proj._lifeUntil = this.elapsedTime + 4000;
-    if (!this._projectiles) this._projectiles = [];
     this._projectiles.push(proj);
   }
 
@@ -341,7 +406,6 @@ export class AreaScene extends Phaser.Scene {
     r._dropped = amount;
     r.setScale(1.2);
     this.tweens.add({ targets: r, alpha: 0.5, duration: 500, yoyo: true, repeat: -1 });
-    if (!this._runeDrops) this._runeDrops = [];
     this._runeDrops.push({ sprite: r, amount });
   }
 
@@ -370,7 +434,7 @@ export class AreaScene extends Phaser.Scene {
     };
     this.player.runes = 0;
 
-    const txt = this.add.text(CONFIG.GAME_W / 2, CONFIG.GAME_H / 2, 'YOU DIED', {
+    const txt = this.add.text(CONFIG.GAME_W / 2, this.cameras.main.height / 2, 'YOU DIED', {
       fontFamily: 'Courier New, monospace',
       fontSize: '36px',
       color: '#7a1f24',
@@ -393,9 +457,10 @@ export class AreaScene extends Phaser.Scene {
       hasEmber: this.player.hasEmber,
       lightRadius: this.player.lightRadius,
       droppedRunes: this.player.droppedRunes,
+      flags: [...this.player.flags],
     };
     this.scene.restart({
-      mapKey: GraceState.lastMap,
+      mapKey: this.map.respawnMap ?? GraceState.lastMap,
       preserveState: state,
       toX: undefined,
       toY: undefined,
@@ -461,7 +526,7 @@ export class AreaScene extends Phaser.Scene {
     };
     const name = override || titles[this.mapKey] || '';
     if (!name) return;
-    const t = this.add.text(CONFIG.GAME_W / 2, CONFIG.GAME_H / 2 - 70, name, {
+    const t = this.add.text(CONFIG.GAME_W / 2, this.cameras.main.height / 2 - 70, name, {
       fontFamily: 'Courier New, monospace',
       fontSize: '14px',
       color: '#c9a449',
@@ -743,7 +808,7 @@ export class AreaScene extends Phaser.Scene {
     }
     Audio.play('room_cleared');
     this.cameras.main.flash(220, 80, 60, 30);
-    const t = this.add.text(CONFIG.GAME_W / 2, CONFIG.GAME_H / 2 - 40, 'the way opens — find the door', {
+    const t = this.add.text(CONFIG.GAME_W / 2, this.cameras.main.height / 2 - 40, 'the way opens — find the door', {
       fontFamily: 'Courier New, monospace',
       fontSize: '11px',
       color: '#c9a449',
@@ -811,7 +876,7 @@ export class AreaScene extends Phaser.Scene {
     if (this._endingShown) return;
     this._endingShown = true;
     this.cameras.main.fadeOut(2200, 0, 0, 0);
-    const t = this.add.text(CONFIG.GAME_W / 2, CONFIG.GAME_H / 2, 'The burrow is quiet again.', {
+    const t = this.add.text(CONFIG.GAME_W / 2, this.cameras.main.height / 2, 'The burrow is quiet again.', {
       fontFamily: 'Courier New, monospace',
       fontSize: '14px',
       color: '#c9a449',

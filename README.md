@@ -24,9 +24,10 @@ Open the served URL (e.g. `http://localhost:3000`) in Chrome or Safari.
 | `L` | Toggle lock-on |
 | `Tab` | Cycle lock-on target |
 | `F` | Drink Carrot Flask (heal) |
-| `E` | Rest at Grace Lantern |
+| `E` | Rest at a Grace Lantern or read a nearby tombstone |
+| `E` / `Enter` | Reveal or close an epitaph |
 | `Enter` | Start (title screen) |
-| `Esc` | Open the pause menu or resume gameplay |
+| `Esc` | Close an epitaph, open the pause menu, or resume gameplay |
 
 ## The Run
 

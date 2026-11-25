@@ -12,6 +12,7 @@ import { GraceState } from '../systems/grace.js';
 import { Audio } from '../systems/audio.js';
 
 const TILE = CONFIG.TILE;
+const INTERACT_RANGE = 22;
 
 // Map characters still determine collision. These names only select textures.
 const TILE_ART = {
@@ -86,6 +87,13 @@ export class AreaScene extends Phaser.Scene {
     this._buildTiles(map);
     this._buildPlayer(map);
     this._buildEntities(map);
+    this.tombstonePrompt = this.add.text(0, 0, '[E] Read', {
+      fontFamily: 'Courier New, monospace',
+      fontSize: '9px',
+      color: '#f0d5a5',
+      backgroundColor: '#151421',
+      padding: { x: 4, y: 2 },
+    }).setOrigin(0.5, 1).setDepth(920).setVisible(false);
     this._wireCollisions();
     this._wireInput();
     this._wireSceneEvents();
@@ -245,7 +253,7 @@ export class AreaScene extends Phaser.Scene {
         }
         case e.type.startsWith('prop:'): {
           const name = e.type.slice(5);
-          const p = new Prop(this, wx, wy, name, { decoration: e.decoration, hazard: e.hazard });
+          const p = new Prop(this, wx, wy, name, e);
           this.props.push(p);
           break;
         }
@@ -322,7 +330,9 @@ export class AreaScene extends Phaser.Scene {
     this.keys.flask.on('down', () => {
       if (this.player.drinkFlask()) this.game.events.emit('hudUpdate', this._hudPayload());
     });
-    this.keys.interact.on('down', () => this._tryInteract());
+    this.keys.interact.on('down', (_key, event) => {
+      if (!event.repeat) this._tryInteract();
+    });
     this.keys.mute.on('down', () => this._toggleMute());
   }
 
@@ -467,29 +477,57 @@ export class AreaScene extends Phaser.Scene {
     });
   }
 
-  _tryInteract() {
-    // Rest at grace
-    for (const lan of this.lanterns) {
-      const d = Phaser.Math.Distance.Between(this.player.x, this.player.y, lan.x, lan.y);
-      if (d < 22) {
-        GraceState.setActive(this.mapKey, lan.id, lan.x, lan.y);
-        this.player.enterRest();
-        Audio.play('grace_rest');
-        this._respawnEnemies();
-        const pTxt = this.add.text(lan.x, lan.y - 28, 'GRACE LIT', {
-          fontFamily: 'Courier New, monospace',
-          fontSize: '8px',
-          color: '#c9a449',
-        }).setOrigin(0.5).setDepth(50);
-        this.tweens.add({ targets: pTxt, y: lan.y - 44, alpha: 0, duration: 1200, onComplete: () => pTxt.destroy() });
-        this.cameras.main.flash(180, 200, 160, 60);
-        this.time.delayedCall(900, () => {
-          this.player.exitRest();
-          this.game.events.emit('hudUpdate', this._hudPayload());
-        });
-        return;
+  _nearbyInteraction() {
+    const player = this.player;
+    if (player.isDead() || player.isResting() || this._transitioning) return null;
+
+    for (const lantern of this.lanterns) {
+      if (Phaser.Math.Distance.Between(player.x, player.y, lantern.x, lantern.y) < INTERACT_RANGE) {
+        return lantern;
       }
     }
+
+    let nearest = null;
+    let range = INTERACT_RANGE;
+    for (const prop of this.props) {
+      if (!prop.dialogue || !prop.active) continue;
+      const distance = Phaser.Math.Distance.Between(player.x, player.y, prop.x, prop.y);
+      if (distance < range) {
+        nearest = prop;
+        range = distance;
+      }
+    }
+    return nearest;
+  }
+
+  _tryInteract() {
+    const target = this._nearbyInteraction();
+    if (!target) return;
+    if (target.dialogue) {
+      this.tombstonePrompt.setVisible(false);
+      this.scene.pause();
+      this.scene.launch('DialogueScene', target.dialogue);
+      return;
+    }
+    this._restAtGrace(target);
+  }
+
+  _restAtGrace(lan) {
+    GraceState.setActive(this.mapKey, lan.id, lan.x, lan.y);
+    this.player.enterRest();
+    Audio.play('grace_rest');
+    this._respawnEnemies();
+    const pTxt = this.add.text(lan.x, lan.y - 28, 'GRACE LIT', {
+      fontFamily: 'Courier New, monospace',
+      fontSize: '8px',
+      color: '#c9a449',
+    }).setOrigin(0.5).setDepth(50);
+    this.tweens.add({ targets: pTxt, y: lan.y - 44, alpha: 0, duration: 1200, onComplete: () => pTxt.destroy() });
+    this.cameras.main.flash(180, 200, 160, 60);
+    this.time.delayedCall(900, () => {
+      this.player.exitRest();
+      this.game.events.emit('hudUpdate', this._hudPayload());
+    });
   }
 
   _respawnEnemies() {
@@ -725,6 +763,10 @@ export class AreaScene extends Phaser.Scene {
       if (p.name === 'fungus_pod') lights.push({ x: p.x, y: p.y - 6, radius: 40, intensity: 0.8 });
     }
     this.lighting.render(this.cameras.main, lights);
+
+    const target = this._nearbyInteraction();
+    this.tombstonePrompt.setVisible(!!target?.dialogue);
+    if (target?.dialogue) this.tombstonePrompt.setPosition(target.x, target.y - 18);
 
     // periodic HUD updates (boss bar)
     if (this._lastHudPush == null || time - this._lastHudPush > 120) {

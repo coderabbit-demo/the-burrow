@@ -26,7 +26,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   takeDamage(amount, fromX, fromY, knockback = 80) {
     if (this.dying) return;
-    const now = this.scene.time.now;
+    const now = this.scene.elapsedTime;
     if (now < this.invulnUntil) return;
     this.hp -= amount;
     this.invulnUntil = now + 120;

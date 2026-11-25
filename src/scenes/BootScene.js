@@ -6,12 +6,7 @@ export class BootScene extends Phaser.Scene {
     super('BootScene');
   }
 
-  preload() {
-    // No external assets — everything is generated.
-  }
-
   create() {
-    // Register all sprites as canvas textures under predictable keys.
     this._registerGroup('rabbit', RABBIT);
     this._registerGroup('grub', GRUB);
     this._registerGroup('spider', SPIDER);
@@ -20,7 +15,6 @@ export class BootScene extends Phaser.Scene {
     this._registerGroup('item', ITEMS);
     this._registerGroup('tile', TILES);
 
-    // Procedural single-pixel and small textures for projectiles, fog, etc.
     this._buildProjectileTexture();
     this._buildFogTexture();
     this._buildSlamTexture();
@@ -36,46 +30,69 @@ export class BootScene extends Phaser.Scene {
   }
 
   _buildProjectileTexture() {
-    const c = document.createElement('canvas');
-    c.width = 8; c.height = 8;
-    const ctx = c.getContext('2d');
-    const g = ctx.createRadialGradient(4, 4, 0, 4, 4, 4);
-    g.addColorStop(0, '#f0d76a');
-    g.addColorStop(0.5, '#7a1f24');
-    g.addColorStop(1, 'rgba(122,31,36,0)');
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.arc(4, 4, 4, 0, Math.PI * 2);
-    ctx.fill();
-    this.textures.addCanvas('proj_ichor', c);
+    addSpriteTexture(this, 'proj_ichor', [
+      '........',
+      '...aa...',
+      '..abfa..',
+      '.abffba.',
+      '.abebba.',
+      '..abba..',
+      '...aa...',
+      '........',
+    ]);
   }
 
   _buildFogTexture() {
-    const c = document.createElement('canvas');
-    const w = 64, h = 96;
-    c.width = w; c.height = h;
-    const ctx = c.getContext('2d');
-    const g = ctx.createLinearGradient(0, 0, w, 0);
-    g.addColorStop(0, 'rgba(50,30,80,0.0)');
-    g.addColorStop(0.5, 'rgba(80,50,120,0.6)');
-    g.addColorStop(1, 'rgba(50,30,80,0.0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, w, h);
-    this.textures.addCanvas('fog_gate', c);
+    const texture = this.textures.createCanvas('fog_gate', 64, 96);
+    const ctx = texture.getContext();
+    const bands = [
+      [24, 4, 14, 0.27], [31, 7, 21, 0.31], [37, 3, 15, 0.33],
+      [18, 2, 19, 0.17], [44, 3, 17, 0.22], [28, 2, 9, 0.44],
+    ];
+    const veil = ctx.createLinearGradient(0, 0, 64, 0);
+    veil.addColorStop(0, 'rgba(50,42,77,0)');
+    veil.addColorStop(0.5, 'rgba(90,76,123,0.4)');
+    veil.addColorStop(1, 'rgba(50,42,77,0)');
+    ctx.fillStyle = veil;
+    ctx.fillRect(0, 0, 64, 96);
+
+    for (const [x, width, wave, opacity] of bands) {
+      for (let y = 0; y < 96; y += 2) {
+        const drift = Math.round(Math.sin(y / wave + x) * 4 + Math.sin(y / 11 + x) * 2);
+        const fade = Math.min(1, (y + 4) / 16, (96 - y) / 20);
+        ctx.fillStyle = `rgba(156,137,184,${opacity * fade})`;
+        ctx.fillRect(x + drift, y, width, 2);
+        if ((y + x) % 10 < 2) {
+          ctx.fillStyle = `rgba(205,188,218,${opacity * fade * 0.5})`;
+          ctx.fillRect(x + drift - 1, y, 2, 1);
+        }
+      }
+    }
+    texture.refresh();
   }
 
   _buildSlamTexture() {
-    const c = document.createElement('canvas');
-    c.width = 64; c.height = 64;
-    const ctx = c.getContext('2d');
-    const g = ctx.createRadialGradient(32, 32, 4, 32, 32, 32);
-    g.addColorStop(0, 'rgba(255,200,100,0.9)');
-    g.addColorStop(0.5, 'rgba(193,71,77,0.5)');
-    g.addColorStop(1, 'rgba(193,71,77,0)');
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.arc(32, 32, 32, 0, Math.PI * 2);
-    ctx.fill();
-    this.textures.addCanvas('slam_ring', c);
+    const texture = this.textures.createCanvas('slam_ring', 64, 64);
+    const ctx = texture.getContext();
+    for (let y = 0; y < 64; y++) {
+      for (let x = 0; x < 64; x++) {
+        const dx = x - 31.5;
+        const dy = y - 31.5;
+        const radius = Math.hypot(dx, dy);
+        const angle = Math.atan2(dy, dx);
+        const rim = 25 + 1.5 * Math.sin(angle * 9) + Math.cos(angle * 15);
+        if (radius >= rim - 1 && radius < rim + 1) {
+          ctx.fillStyle = radius < rim ? '#ea8b6e' : '#a83851';
+        } else if (radius >= rim - 4 && radius < rim - 1) {
+          ctx.fillStyle = 'rgba(148,35,62,0.55)';
+        } else if (radius >= rim + 2 && radius < 32 && (x * 17 + y * 13) % 19 === 0) {
+          ctx.fillStyle = '#ce6258';
+        } else {
+          continue;
+        }
+        ctx.fillRect(x, y, 1, 1);
+      }
+    }
+    texture.refresh();
   }
 }

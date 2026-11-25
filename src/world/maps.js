@@ -245,5 +245,6 @@ export const MAPS = {
       { type: 'boss', x: 10, y: 8 },
     ],
     isBoss: true,
+    respawnMap: 'antechamber',
   },
 };

@@ -1,6 +1,8 @@
 export const CONFIG = {
   GAME_W: 480,
   GAME_H: 320,
+  HUD_TOP_HEIGHT: 52,
+  BOSS_HUD_HEIGHT: 44,
   TILE: 16,
   SCALE: 2,
 

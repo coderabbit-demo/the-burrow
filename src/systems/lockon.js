@@ -51,13 +51,33 @@ export class LockOn {
   draw() {
     this.indicator.clear();
     if (!this.target || this.target.dying) return;
-    this.indicator.lineStyle(1, 0xc1474d, 0.9);
-    this.indicator.strokeCircle(this.target.x, this.target.y - 4, 10);
-    this.indicator.fillStyle(0xc1474d, 0.9);
-    this.indicator.fillTriangle(
-      this.target.x, this.target.y - 18,
-      this.target.x - 3, this.target.y - 22,
-      this.target.x + 3, this.target.y - 22,
-    );
+    const x = Math.round(this.target.x);
+    const y = Math.round(this.target.y) - 4;
+    const g = this.indicator;
+    const corners = [
+      [x - 10, y - 9, 1, 1], [x + 10, y - 9, -1, 1],
+      [x - 10, y + 9, 1, -1], [x + 10, y + 9, -1, -1],
+    ];
+
+    for (const [cx, cy, dx, dy] of corners) {
+      const left = dx > 0 ? cx : cx - 3;
+      const top = dy > 0 ? cy : cy - 3;
+      g.fillStyle(0x160d1b, 0.9);
+      g.fillRect(left, cy - 1, 4, 3);
+      g.fillRect(cx - 1, top, 3, 4);
+      g.fillStyle(0xd06065, 1);
+      g.fillRect(left, cy, 4, 1);
+      g.fillRect(cx, top, 1, 4);
+      g.fillStyle(0xf29b86, 1);
+      g.fillRect(cx, cy, 1, 1);
+    }
+
+    g.fillStyle(0x190e1b, 1);
+    g.fillRect(x - 2, y - 18, 5, 4);
+    g.fillRect(x - 1, y - 14, 3, 1);
+    g.fillStyle(0xd06065, 1);
+    g.fillRect(x - 1, y - 17, 3, 2);
+    g.fillStyle(0xffb396, 1);
+    g.fillRect(x, y - 17, 1, 1);
   }
 }

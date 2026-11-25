@@ -4,6 +4,7 @@ import { TitleScene } from './scenes/TitleScene.js';
 import { AreaScene } from './scenes/AreaScene.js';
 import { HudScene } from './scenes/HudScene.js';
 import { PauseScene } from './scenes/PauseScene.js';
+import { DialogueScene } from './scenes/DialogueScene.js';
 
 const config = {
   type: Phaser.AUTO,
@@ -20,7 +21,7 @@ const config = {
       debug: false,
     },
   },
-  scene: [BootScene, TitleScene, AreaScene, HudScene, PauseScene],
+  scene: [BootScene, TitleScene, AreaScene, HudScene, PauseScene, DialogueScene],
 };
 
 window.addEventListener('load', () => {

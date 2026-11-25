@@ -137,9 +137,27 @@ export const MAPS = {
       { type: 'spider', x: 23, y: 5 },
       { type: 'spider', x: 6,  y: 14 },
       { type: 'flask',  x: 14, y: 10 },
-      { type: 'prop:tombstone',         x: 3,  y: 5 },
-      { type: 'prop:tombstone_cracked', x: 4,  y: 5 },
-      { type: 'prop:tombstone',         x: 28, y: 12 },
+      {
+        type: 'prop:tombstone', x: 3, y: 5,
+        dialogue: {
+          title: 'The Null Sentinel',
+          text: 'It reached for the gate and grasped the void.',
+        },
+      },
+      {
+        type: 'prop:tombstone_cracked', x: 4, y: 5,
+        dialogue: {
+          title: 'The Off-by-One',
+          text: 'The grave was dug one tile too far. We buried it there anyway.',
+        },
+      },
+      {
+        type: 'prop:tombstone', x: 28, y: 12,
+        dialogue: {
+          title: 'The Endless Recursion',
+          text: 'The rites ended when CodeRabbit supplied a base case.',
+        },
+      },
       { type: 'prop:dead_tree',         x: 8,  y: 3 },
       { type: 'prop:dead_tree',         x: 22, y: 3 },
       { type: 'prop:dead_tree',         x: 6,  y: 11 },
@@ -195,8 +213,20 @@ export const MAPS = {
       { type: 'prop:pillar',           x: 30, y: 3 },
       { type: 'prop:pillar',           x: 3,  y: 18 },
       { type: 'prop:pillar',           x: 30, y: 18 },
-      { type: 'prop:tombstone',        x: 6,  y: 6 },
-      { type: 'prop:tombstone_cracked',x: 27, y: 6 },
+      {
+        type: 'prop:tombstone', x: 6, y: 6,
+        dialogue: {
+          title: 'The Swallowed Exception',
+          text: 'It took every error to the grave. The logs record a peaceful passing.',
+        },
+      },
+      {
+        type: 'prop:tombstone_cracked', x: 27, y: 6,
+        dialogue: {
+          title: 'The Memory Leak',
+          text: 'It kept every candle ever lit for it. In time the crypt ran out of room.',
+        },
+      },
       { type: 'prop:bone_pile',        x: 16, y: 4 },
       { type: 'prop:bone_pile',        x: 13, y: 18 },
       { type: 'prop:bone_pile',        x: 20, y: 18 },
@@ -222,8 +252,20 @@ export const MAPS = {
       { type: 'spider',  x: 23, y: 4 },
       { type: 'grub',    x: 6,  y: 12 },
       { type: 'grub',    x: 21, y: 12 },
-      { type: 'prop:tombstone',         x: 3,  y: 3 },
-      { type: 'prop:tombstone_cracked', x: 24, y: 3 },
+      {
+        type: 'prop:tombstone', x: 3, y: 3,
+        dialogue: {
+          title: 'The Race Condition',
+          text: 'Two gravediggers claimed this plot. Both had checked that it was empty.',
+        },
+      },
+      {
+        type: 'prop:tombstone_cracked', x: 24, y: 3,
+        dialogue: {
+          title: 'The Flaky Test',
+          text: 'It passed away on retry. The first attempt failed for reasons lost to the logs.',
+        },
+      },
       { type: 'prop:bone_pile',         x: 3,  y: 12 },
       { type: 'prop:bone_pile',         x: 24, y: 12 },
       { type: 'prop:fungus_pod',        x: 6,  y: 7 },

@@ -10,6 +10,7 @@ export class Prop extends Phaser.Physics.Arcade.Sprite {
     scene.add.existing(this);
     this.name = name;
     this.decoration = !!opts.decoration;
+    this.dialogue = opts.dialogue;
     const solid = !this.decoration && SOLID_PROPS.has(name);
     if (solid) {
       scene.physics.add.existing(this, true); // static body
